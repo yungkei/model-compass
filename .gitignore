@@ -1,0 +1,44 @@
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Test & temp files
+test.js
+test*.js
+test*.ps1
+run_trace*.js
+tmp-*/
+.tmp-test/
+
+# Design docs (do not commit)
+*spec*
+*spec*/
+*design*
+*design*/
+*DESIGN*
+*DESIGN*/
+*SPEC*
+*SPEC*/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+nul
+
+# Package specific
+.github/
+.git/
+*.test.js
+coverage/
+
+# User config and test data
+.model-compass/
+.test-model-compass/

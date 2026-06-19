@@ -1,0 +1,2793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model Compass</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0b;
+      --bg-secondary: #141416;
+      --bg-tertiary: #1c1c1f;
+      --bg-hover: #222226;
+      --border: #2a2a2e;
+      --border-light: #3a3a3e;
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --accent-blue: #3b82f6;
+      --accent-blue-hover: #2563eb;
+      --accent-purple: #8b5cf6;
+      --accent-green: #22c55e;
+      --accent-yellow: #eab308;
+      --accent-red: #ef4444;
+      --accent-orange: #f97316;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0f1117;
+  color: #e1e4e8;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 28px;
+  background: #161922;
+  border-bottom: 1px solid #2a2d36;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #f0f2f5;
+}
+
+.logo-icon {
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #4a7dff, #8b5cf6);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.lang-selector select {
+  padding: 5px 10px;
+  background: #1a1d28;
+  border: 1px solid #2a2d36;
+  border-radius: 5px;
+  color: #c8ccd4;
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-selector select:hover {
+  border-color: #4a7dff;
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.menu-sidebar {
+  flex-shrink: 0;
+  width: 220px;
+  background: #161922;
+  border-right: 1px solid #2a2d36;
+  padding: 16px 10px;
+  overflow-y: auto;
+}
+
+.content-area {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0;
+}
+
+.page.hidden { display: none; }
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.nav-item {
+  padding: 9px 11px;
+  border-radius: 6px;
+  color: #8b8fa3;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  margin-bottom: 3px;
+}
+
+.nav-item:hover {
+  background: #1e2130;
+  color: #c8ccd4;
+}
+
+.nav-item.active {
+  background: #252938;
+  color: #4a7dff;
+}
+
+.nav-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.7;
+}
+
+.nav-item.active .nav-icon {
+  opacity: 1;
+}
+
+.page.hidden { display: none; }
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.page-header {
+  flex-shrink: 0;
+  padding: 18px 28px;
+  background: #161922;
+  border-bottom: 1px solid #2a2d36;
+}
+
+.page-header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #f0f2f5;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.page-header-desc {
+  font-size: 12px;
+  color: #6b6f82;
+  margin: 4px 0 0 0;
+}
+
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 28px 80px;
+  background: #0f1117;
+  min-height: 0;
+  height: 100%;
+}
+
+.page-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.page-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.page-content::-webkit-scrollbar-thumb {
+  background: #2a2d36;
+  border-radius: 3px;
+}
+
+.page-content::-webkit-scrollbar-thumb:hover {
+  background: #3a3d46;
+}
+
+.menu-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.menu-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.menu-sidebar::-webkit-scrollbar-thumb {
+  background: #2a2d36;
+  border-radius: 2px;
+}
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .provider-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .provider-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: all 0.15s ease;
+    }
+
+    .provider-card:hover {
+      border-color: var(--border-light);
+    }
+
+    .provider-card.offline {
+      opacity: 0.6;
+    }
+
+    .provider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .provider-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .provider-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-dot.online {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .status-dot.offline {
+      background: var(--accent-red);
+    }
+
+    .status-dot.cooldown {
+      background: var(--accent-yellow);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .provider-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    .provider-info span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .route-config {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .route-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .route-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .route-select {
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+
+    .route-select:hover, .route-select:focus {
+      border-color: var(--accent-blue);
+      outline: none;
+    }
+
+    .auto-switch-config {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .toggle.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: var(--text-primary);
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+    }
+
+    .toggle.active::after {
+      transform: translateX(20px);
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .config-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .config-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .config-input {
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .config-input:focus {
+      border-color: var(--accent-blue);
+      outline: none;
+    }
+
+    .recent-requests {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .request-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+    }
+
+    .request-time {
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .request-type {
+      padding: 2px 8px;
+      background: var(--accent-blue);
+      color: white;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .request-model {
+      color: var(--text-secondary);
+    }
+
+    .request-arrow {
+      color: var(--text-muted);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--border-light);
+      background: var(--bg-hover);
+    }
+
+    .chart-container {
+      height: 200px;
+      position: relative;
+      margin-top: 16px;
+    }
+
+    .chart-line {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%);
+      border-radius: var(--radius-md);
+    }
+
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      position: relative;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 480px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow: hidden;
+      animation: modalIn 0.2s ease;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes toastSlideIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    @keyframes toastSlideOut {
+      from { opacity: 1; transform: translateX(-50%) translateY(0); }
+      to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: border-color 0.15s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--accent-blue);
+      outline: none;
+    }
+
+    .form-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .local-model-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .local-model-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .local-model-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent-purple);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .local-model-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .local-model-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .local-model-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--accent-green);
+    }
+
+    .btn svg {
+      margin-right: 6px;
+    }
+
+    .provider-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .provider-detail-card {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    .provider-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .provider-detail-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .provider-detail-type {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .provider-detail-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .provider-detail-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .provider-stat {
+      text-align: center;
+    }
+
+    .provider-stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .provider-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 40px;
+      color: var(--text-muted);
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--border);
+    }
+
+    .empty-state-icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+      opacity: 0.4;
+      display: block;
+    }
+
+    .empty-state-text {
+      font-size: 15px;
+      color: var(--text-secondary);
+    }
+
+    .route-type-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .route-type-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      transition: all 0.2s ease;
+    }
+
+    .route-type-card:hover {
+      border-color: var(--border-light);
+    }
+
+    .route-type-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .route-type-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .route-type-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .route-type-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .route-type-selects {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .route-type-selects .route-select {
+      width: 160px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .route-config-auto {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      transition: all 0.3s ease;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .route-config-auto .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .route-display {
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .route-display:empty::after {
+      content: '—';
+      color: var(--text-muted);
+    }
+
+    .route-type-readonly {
+      display: none;
+      flex-shrink: 0;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .route-type-readonly .provider-name {
+      font-weight: 500;
+    }
+
+    .route-type-readonly .model-name {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .failover-config {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .route-type-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .route-type-selects {
+        width: 100%;
+      }
+      .route-type-selects .route-select {
+        flex: 1;
+      }
+    }
+
+    .provider-connect-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+      min-height: 400px;
+    }
+
+    .provider-type-list {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+    }
+
+    .provider-type-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .provider-type-items {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .provider-type-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .provider-type-item:hover {
+      background: var(--bg-hover);
+    }
+
+    .provider-type-item.active {
+      background: var(--bg-hover);
+      border-color: var(--accent-blue);
+    }
+
+    .provider-type-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    .provider-type-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .provider-type-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .provider-config-panel {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .config-panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .config-panel-header .provider-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      background: var(--accent-blue);
+      border-radius: var(--radius-sm);
+    }
+
+    .config-panel-body {
+      padding: 20px;
+      flex: 1;
+    }
+
+    .config-field {
+      margin-bottom: 16px;
+    }
+
+    .config-field:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .config-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .config-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 13px;
+      transition: border-color 0.15s ease;
+    }
+
+    .config-input:focus {
+      border-color: var(--accent-blue);
+      outline: none;
+    }
+
+    .config-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .config-input:read-only {
+      background: var(--bg-primary);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .config-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .connect-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-blue);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .connect-btn:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    .connect-btn:disabled {
+      background: var(--bg-hover);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .connecting-indicator {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .success-message {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid var(--accent-green);
+      border-radius: var(--radius-md);
+      color: var(--accent-green);
+      margin-top: 16px;
+    }
+
+    .error-message {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--accent-red);
+      border-radius: var(--radius-md);
+      color: var(--accent-red);
+      margin-top: 16px;
+    }
+
+    .connection-mode-selector {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .mode-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .mode-option::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .mode-option.active::after {
+      opacity: 1;
+    }
+
+    .mode-option:hover {
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+    }
+
+    .mode-option.active {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.08);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .mode-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      transition: all 0.2s ease;
+    }
+
+    .mode-option.active .mode-icon {
+      background: var(--accent-blue);
+      transform: scale(1.05);
+    }
+
+    .mode-name {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .mode-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .manual-provider-select {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+
+
+</style>
+<!-- 强制不使用缓存 -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+</head>
+<body>
+  <!-- 顶部：应用描述区 -->
+  <header class="app-header">
+    <div class="app-title">
+      <div class="logo-icon">🧭</div>
+      <span>Model Compass</span>
+    </div>
+    <div class="lang-selector">
+      <select id="langSelect" onchange="changeLanguage(this.value)">
+        <option value="zh">CN</option>
+        <option value="en">EN</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- 中间：操作区 -->
+  <div class="app-body">
+    <!-- 左侧：菜单区 -->
+    <aside class="menu-sidebar">
+      <nav>
+        <div id="nav-dashboard" class="nav-item active">仪表盘</div>
+        <div id="nav-providers" class="nav-item">提供商</div>
+        <div id="nav-routes" class="nav-item">路由配置</div>
+      </nav>
+    </aside>
+
+    <!-- 右侧：内容区 -->
+    <main class="content-area">
+      <div id="dashboardPage" class="page">
+        <div class="page-header">
+          <h2 class="page-header-title" data-i18n="dashboard">仪表盘</h2>
+          <p class="page-header-desc" data-i18n="dashboardHint">查看系统运行状态和统计数据</p>
+        </div>
+        
+        <div class="page-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label" data-i18n="totalRequests">总请求数</div>
+            <div class="stat-value" id="totalRequests">-</div>
+            <div class="stat-sub" data-i18n="today">今日</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label" data-i18n="successRate">成功率</div>
+            <div class="stat-value" id="successRate">-</div>
+            <div class="stat-sub"><span data-i18n="avgLatency">平均响应时间</span> <span id="avgLatency">-</span>ms</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label" data-i18n="tokenUsage">Token 使用量</div>
+            <div class="stat-value" id="totalTokens">-</div>
+            <div class="stat-sub"><span data-i18n="prompt">输入</span> <span id="promptTokens">-</span> / <span data-i18n="completion">输出</span> <span id="completionTokens">-</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label" data-i18n="activeModels">活跃模型</div>
+            <div class="stat-value" id="activeModels">-</div>
+            <div class="stat-sub" data-i18n="currentAvailable">当前可用</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2 class="section-title" data-i18n="providerStatus">提供商状态</h2>
+          </div>
+          <div class="provider-list" id="providerList">
+            <div class="loading">...</div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div id="providersPage" class="page hidden">
+        <div class="page-header">
+          <h2 class="page-header-title" data-i18n="providers">提供商</h2>
+          <p class="page-header-desc" data-i18n="providersHint">连接和管理 AI 服务提供商</p>
+        </div>
+        
+<div class="page-content">
+        <div class="section" style="margin-top: 20px;">
+          <div class="section-header">
+            <h2 class="section-title" data-i18n="allModels">已添加的模型</h2>
+            <button class="btn btn-primary" onclick="openProviderModal()">+ 添加提供商</button>
+          </div>
+          <div id="allModelsList">
+            <div class="loading">...</div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- 添加/编辑提供商弹窗 -->
+      <div id="providerModal" class="modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeProviderModal()"></div>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title" id="modalProviderTitle">添加提供商</h3>
+            <button class="modal-close" onclick="closeProviderModal()">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">显示名称</label>
+              <input type="text" class="form-input" id="modalProviderName" placeholder="显示名称">
+            </div>
+            <div class="form-group">
+              <label class="form-label">类型</label>
+              <select class="form-select" id="modalProviderType">
+                <option value="openai">OpenAI 兼容</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="moonshot">Moonshot</option>
+                <option value="anthropic">Anthropic</option>
+                <option value="ollama">Ollama</option>
+                <option value="gemini">Gemini</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API 基础 URL</label>
+              <input type="text" class="form-input" id="modalProviderBaseUrl" placeholder="https://api.example.com/v1/chat/completions">
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key</label>
+              <div style="position:relative;display:flex;align-items:center;">
+                <input type="text" class="form-input" id="modalProviderApiKey" placeholder="sk-..." style="flex:1;padding-right:40px;">
+                <button type="button" onclick="toggleApiKeyVisibility()" style="position:absolute;right:10px;background:none;border:none;cursor:pointer;font-size:16px;">👁</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">模型列表 (逗号分隔，可选)</label>
+              <input type="text" class="form-input" id="modalProviderModels" placeholder="model1,model2">
+            </div>
+            <div class="form-group">
+              <label class="form-label">优先级 (1-100)</label>
+              <input type="number" class="form-input" id="modalProviderPriority" value="1" min="1" max="100">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeProviderModal()">取消</button>
+            <button class="btn btn-primary" onclick="saveProviderFromModal()">保存</button>
+          </div>
+        </div>
+      </div>
+
+<div id="routesPage" class="page hidden">
+        <div class="page-header">
+          <h2 class="page-header-title" data-i18n="routeConfig">路由配置</h2>
+          <p class="page-header-desc" data-i18n="routeConfigHint">配置路由规则和故障转移策略</p>
+        </div>
+        
+        <div class="page-content">
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title" data-i18n="connectionMode">连接模式</h2>
+            </div>
+          
+            <div class="connection-mode-selector">
+              <div class="mode-option" data-mode="auto" onclick="setConnectionMode('auto')">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-info">
+                  <div class="mode-name" data-i18n="autoMode">自动调度</div>
+                  <div class="mode-desc" data-i18n="autoModeDesc">根据请求类型自动选择最优提供商</div>
+                </div>
+              </div>
+              <div class="mode-option" data-mode="manual" onclick="setConnectionMode('manual')">
+                <div class="mode-icon">🎯</div>
+                <div class="mode-info">
+                  <div class="mode-name" data-i18n="manualMode">手动选择</div>
+                  <div class="mode-desc" data-i18n="manualModeDesc">各路由可配置不同提供商</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" style="margin-top: 20px;" id="routeConfigSection">
+            <div class="section-header">
+              <h2 class="section-title"><span data-i18n="sceneRoutes">路由配置</span> <span id="routeModeLabel" style="font-size: 12px; font-weight: 400; color: var(--text-muted);">(自动调度模式)</span></h2>
+            </div>
+
+            <div id="autoRouteConfig" class="route-config-auto" style="display: none;">
+              <div class="config-field strategy-field">
+                <label class="config-label" data-i18n="schedulingStrategy">调度策略</label>
+                <select class="route-select" id="schedulingStrategy">
+                  <option value="network-adaptive" selected>网络自适应</option>
+                  <option value="priority-based">优先级调度</option>
+                  <option value="load-balance">负载均衡</option>
+                  <option value="cost-based">成本优化</option>
+                </select>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 12px; padding: 10px; background: var(--bg-secondary); border-radius: var(--radius-sm);" data-i18n="autoRouteHint">
+                自动调度模式下，系统将根据选择的策略自动选择最优提供商
+              </div>
+            </div>
+
+            <div id="manualRouteConfig" class="route-type-grid">
+              <div class="route-type-card">
+                <div class="route-type-icon" style="background: var(--accent-blue);">🎯</div>
+                <div class="route-type-info">
+                  <div class="route-type-name" data-i18n="default">默认模型</div>
+                  <div class="route-type-desc" data-i18n="defaultDesc">手动选择用于所有任务的模型</div>
+                </div>
+                <div class="route-type-selects">
+                  <select class="route-select" id="routeDefault">
+                    <option value="" data-i18n="selectProvider">选择提供商</option>
+                  </select>
+                  <select class="route-select" id="routeDefaultModel">
+                    <option value="" data-i18n="selectModel">选择模型</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" style="margin-top: 20px;" id="failoverSection">
+            <div class="section-header">
+              <h2 class="section-title" data-i18n="failoverConfig">故障转移配置</h2>
+            </div>
+            
+            <div class="failover-config">
+              <div class="switch-row">
+                <div class="toggle active" id="autoSwitchToggle" onclick="toggleAutoSwitch()"></div>
+                <div>
+                  <div style="font-weight: 500;" data-i18n="enableFailover">启用自动故障转移</div>
+                  <div style="font-size: 12px; color: var(--text-muted);" data-i18n="enableFailoverDesc">当主提供商失败时自动切换到备用提供商</div>
+                </div>
+              </div>
+              
+              <div class="config-grid" style="margin-top: 20px;">
+                <div class="config-field">
+                  <label class="config-label" data-i18n="maxRetries">最大重试次数</label>
+                  <input type="number" class="config-input" id="maxRetries" value="3">
+                </div>
+                <div class="config-field">
+                  <label class="config-label" data-i18n="retryDelay">重试延迟 (ms)</label>
+                  <input type="number" class="config-input" id="retryDelay" value="1000">
+                </div>
+                <div class="config-field">
+                  <label class="config-label" data-i18n="cooldownTime">冷却时间 (秒)</label>
+                  <input type="number" class="config-input" id="cooldownSeconds" value="60">
+                </div>
+                <div class="config-field">
+                  <label class="config-label" data-i18n="retryableErrors">可重试错误码</label>
+                  <input type="text" class="config-input" id="retryableErrors" value="429, 500, 502, 503, 504" readonly>
+                </div>
+              </div>
+              
+              <div class="config-field" style="margin-top: 16px;">
+                <label class="config-label" data-i18n="fallbackChain">备用链 (按优先级排序)</label>
+                <input type="text" class="config-input" id="fallbackChain" placeholder="openrouter, deepseek, ollama">
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" data-i18n="fallbackChainDesc">当主提供商失败时，将按顺序尝试备用提供商</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="padding: 16px 24px; border-top: 1px solid var(--border); background: var(--bg-secondary); position: sticky; bottom: 0; text-align: center;">
+          <button class="btn btn-primary" onclick="saveRoutes()" data-i18n="saveConfig">保存配置</button>
+        </div>
+      </main>
+    </div>
+
+  <footer style="text-align:right;padding:16px 24px;color:var(--text-muted);font-size:12px;border-top:1px solid var(--border);">
+    <span id="footerInfo">© 2026 Model Compass v1.0.0 by yungkei Licensed under Apache-2.0</span>
+    <span style="margin-left:16px;font-size:11px;color:var(--accent-green);" id="versionTag">v1.0.0</span>
+  </footer>
+
+  <script>
+    const translations = {
+      zh: {
+        dashboard: '仪表盘',
+        dashboardHint: '查看系统运行状态和统计数据',
+        providers: '提供商',
+        providersHint: '连接和管理 AI 服务提供商',
+        routes: '路由配置',
+        routeConfig: '路由配置',
+        routeConfigHint: '配置路由规则和故障转移策略',
+        totalRequests: '总请求数',
+        today: '今日',
+        successRate: '成功率',
+        avgLatency: '平均响应时间',
+        tokenUsage: 'Token 使用量',
+        prompt: '输入',
+        completion: '输出',
+        activeModels: '活跃模型',
+        currentAvailable: '当前可用',
+        providerStatus: '提供商状态',
+        refresh: '刷新',
+        recentRequests: '最近请求',
+        noRequests: '暂无请求',
+        connectProvider: '连接提供商',
+        selectProviderType: '选择提供商类型',
+        providerName: '显示名称',
+        apiBaseUrl: 'API 基础 URL',
+        apiKey: 'API Key',
+        modelList: '模型列表 (可选)',
+        priority: '优先级',
+        connect: '连接',
+        connectedProviders: '已连接的提供商',
+        allModels: '已添加的模型',
+        localModels: '本地模型 (Ollama / LM Studio / Jan)',
+        noProvider: '暂无提供商，请添加第一个提供商',
+        noLocalModels: '未检测到本地模型服务',
+        ensureRunning: '请确保 Ollama、LM Studio 或 Jan 正在运行',
+        connectionMode: '连接模式',
+        autoMode: '自动调度',
+        autoModeDesc: '根据请求类型自动选择最优提供商',
+        manualMode: '手动选择',
+        manualModeDesc: '指定固定提供商，绕过智能路由',
+        fixedProvider: '固定提供商',
+        fixedModel: '固定模型',
+        sceneRoutes: '路由配置',
+        autoModeLabel: '(自动调度模式)',
+        manualModeLabel: '(手动选择模式)',
+        currentProvider: '当前提供商',
+        currentModel: '当前模型',
+        schedulingStrategy: '调度策略',
+        autoRouteHint: '自动调度模式下，系统将根据选择的策略自动选择最优提供商',
+        priorityBased: '优先级调度',
+        loadBalance: '负载均衡',
+        costBased: '成本优化',
+        networkAdaptive: '网络自适应',
+        notSet: '未设置',
+        editMode: '编辑',
+        viewMode: '查看',
+        saveConfig: '保存配置',
+        default: '默认 (Default)',
+        defaultDesc: '日常对话和通用任务',
+        background: '后台任务 (Background)',
+        backgroundDesc: '异步执行的后台任务',
+        think: '思考模式 (Think)',
+        thinkDesc: '需要深度推理的任务',
+        longContext: '长文本 (Long Context)',
+        longContextDesc: '大文档分析和处理',
+        failoverConfig: '故障转移配置',
+        enableFailover: '启用自动故障转移',
+        enableFailoverDesc: '当主提供商失败时自动切换到备用提供商',
+        maxRetries: '最大重试次数',
+        retryDelay: '重试延迟 (ms)',
+        cooldownTime: '冷却时间 (秒)',
+        retryableErrors: '可重试错误码',
+        fallbackChain: '备用链 (按优先级排序)',
+        fallbackChainDesc: '当主提供商失败时，将按顺序尝试备用提供商',
+        selectProvider: '选择提供商',
+        selectModel: '选择模型',
+        noData: '-',
+        connectionFailed: '连接失败，请检查配置',
+        providerAdded: '提供商已添加！正在刷新页面...',
+        configSaved: '配置已保存',
+        applyConfig: '配置生效',
+        configReloaded: '配置已生效',
+        ollama: 'Ollama',
+        lmstudio: 'LM Studio',
+        jan: 'Jan',
+        ready: '就绪',
+        models: '模型',
+        status: '状态',
+        latency: '延迟 (ms)',
+        online: '在线',
+        offline: '离线',
+        edit: '编辑',
+        delete: '删除',
+cooldown: '冷却',
+        providerOpenRouter: '聚合多种模型',
+        providerDeepSeek: '深度求索 AI',
+        providerAnthropic: 'Claude 系列模型',
+        providerOpenAI: 'GPT 系列模型',
+        providerMoonshot: 'Kimi 系列模型',
+        providerGemini: 'Google 模型',
+        providerVolcengine: '火山引擎',
+        providerModelScope: 'ModelScope',
+        providerDashScope: '阿里云',
+        providerOllama: '本地模型运行',
+        providerLMStudio: '本地模型管理',
+        providerJan: '本地模型服务',
+        providerCustom: '其他 OpenAI 兼容',
+        loading: '加载中...',
+        connecting: '连接中...',
+        models: '模型',
+        latency: '延迟 (ms)',
+        openaiCompatible: 'OpenAI 兼容',
+        version: '版本',
+        footerInfo: '© 2026 Model Compass v1.0.0 by yungkei Licensed under Apache-2.0'
+      },
+      en: {
+        dashboard: 'Dashboard',
+        dashboardHint: 'View system status and statistics',
+        providers: 'Providers',
+        providersHint: 'Connect and manage AI service providers',
+        routes: 'Routes',
+        routeConfig: 'Route Config',
+        routeConfigHint: 'Configure routing rules and failover strategy',
+        totalRequests: 'Total Requests',
+        today: 'Today',
+        successRate: 'Success Rate',
+        avgLatency: 'Avg Latency',
+        tokenUsage: 'Token Usage',
+        prompt: 'Prompt',
+        completion: 'Completion',
+        activeModels: 'Active Models',
+        currentAvailable: 'Current Available',
+        providerStatus: 'Provider Status',
+        refresh: 'Refresh',
+        recentRequests: 'Recent Requests',
+        noRequests: 'No requests yet',
+        connectProvider: 'Connect Provider',
+        selectProviderType: 'Select Provider Type',
+        providerName: 'Display Name',
+        apiBaseUrl: 'API Base URL',
+        apiKey: 'API Key',
+        modelList: 'Model List (Optional)',
+        priority: 'Priority',
+        connect: 'Connect',
+        connectedProviders: 'Connected Providers',
+        allModels: 'Added Models',
+        localModels: 'Local Models (Ollama / LM Studio / Jan)',
+        noProvider: 'No providers yet, add your first provider',
+        noLocalModels: 'No local model services detected',
+        ensureRunning: 'Make sure Ollama, LM Studio or Jan is running',
+        connectionMode: 'Connection Mode',
+        autoMode: 'Auto Routing',
+        autoModeDesc: 'Automatically select best provider based on request type',
+        manualMode: 'Manual Select',
+        manualModeDesc: 'Use fixed provider, bypass smart routing',
+        fixedProvider: 'Fixed Provider',
+        fixedModel: 'Fixed Model',
+        sceneRoutes: 'Routes',
+        autoModeLabel: '(Auto Mode)',
+        manualModeLabel: '(Manual Mode)',
+        autoProvider: 'Unified Provider',
+        autoModel: 'Unified Model',
+        editMode: 'Edit',
+        viewMode: 'View',
+        saveConfig: 'Save Config',
+        default: 'Default',
+        defaultDesc: 'Daily chat and general tasks',
+        background: 'Background',
+        backgroundDesc: 'Async background tasks',
+        think: 'Think Mode',
+        thinkDesc: 'Tasks requiring deep reasoning',
+        longContext: 'Long Context',
+        longContextDesc: 'Large document analysis',
+        schedulingStrategy: 'Scheduling Strategy',
+        priorityBased: 'Priority Based',
+        loadBalance: 'Load Balance',
+        costBased: 'Cost Based',
+        networkAdaptive: 'Network Adaptive',
+        autoRouteHint: 'Auto routing will automatically select the best provider based on the selected strategy',
+        failoverConfig: 'Failover Config',
+        enableFailover: 'Enable Auto Failover',
+        enableFailoverDesc: 'Auto switch to backup when primary fails',
+        maxRetries: 'Max Retries',
+        retryDelay: 'Retry Delay (ms)',
+        cooldownTime: 'Cooldown (seconds)',
+        retryableErrors: 'Retryable Error Codes',
+        fallbackChain: 'Fallback Chain (priority order)',
+        fallbackChainDesc: 'Try backup providers in order when primary fails',
+        selectProvider: 'Select Provider',
+        selectModel: 'Select Model',
+        noData: '-',
+        connectionFailed: 'Connection failed, please check config',
+        providerAdded: 'Provider added! Refreshing...',
+        configSaved: 'Config saved',
+        applyConfig: 'Apply Config',
+        configReloaded: 'Config applied',
+        ollama: 'Ollama',
+        lmstudio: 'LM Studio',
+        jan: 'Jan',
+        ready: 'Ready',
+        models: 'Models',
+        status: 'Status',
+        latency: 'Latency (ms)',
+        online: 'Online',
+        offline: 'Offline',
+        edit: 'Edit',
+        delete: 'Delete',
+        cooldown: 'Cooling',
+        providerOpenRouter: 'Aggregated models',
+        providerDeepSeek: 'DeepSeek AI',
+        providerAnthropic: 'Claude series',
+        providerOpenAI: 'GPT series',
+        providerMoonshot: 'Kimi series',
+        providerGemini: 'Google models',
+        providerVolcengine: 'Volcengine',
+        providerModelScope: 'ModelScope',
+        providerDashScope: 'Aliyun',
+        providerOllama: 'Local models',
+        providerLMStudio: 'Local model manager',
+        providerJan: 'Local model server',
+        providerCustom: 'OpenAI compatible',
+        loading: 'Loading...',
+        connecting: 'Connecting...',
+        models: 'Models',
+        latency: 'Latency (ms)',
+        openaiCompatible: 'OpenAI compatible',
+        version: 'Version',
+        footerInfo: '© 2026 Model Compass v1.0.0 by yungkei Licensed under Apache-2.0'
+      }
+    };
+
+    let currentLang = localStorage.getItem('mc-lang') || 'zh';
+    let t = translations[currentLang];
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('mc-lang', lang);
+      t = translations[lang];
+      updatePageTexts();
+      const footerEl = document.getElementById('footerInfo');
+      if (footerEl && t.footerInfo) {
+        footerEl.textContent = t.footerInfo;
+      }
+    }
+
+    window.navigateTo = function(page) {
+      console.log('Navigating to:', page);
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelector(`.nav-item[data-page="${page}"]`)?.classList.add('active');
+      
+      currentPage = page;
+      
+      document.querySelectorAll('.page').forEach(p => { p.classList.add('hidden'); p.style.display = 'none'; });
+      const targetPage = document.getElementById(`${page}Page`);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+        targetPage.style.display = 'flex';
+      }
+      
+      document.querySelector('.page-title').textContent = t[page] || t.dashboard;
+      
+      if (page === 'providers') { 
+        loadProviders(); 
+        refreshLocalModels(); 
+      }
+      if (page === 'routes') { loadRoutes(); setupRouteSelectHandlers(); }
+    };
+
+    function updatePageTexts() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (t[key]) el.textContent = t[key];
+      });
+      const titleEl = document.querySelector('.page-title');
+      if (titleEl) titleEl.textContent = t[currentPage] || t.dashboard;
+    }
+
+    let currentPage = 'dashboard';
+    let config = {};
+    let connectionMode = 'auto';
+
+    function init() {
+      t = translations[currentLang];
+      const savedPage = localStorage.getItem('mc-current-page') || 'dashboard';
+      showPage(savedPage);
+    }
+
+    function showPage(page) {
+      currentPage = page;
+      localStorage.setItem('mc-current-page', page);
+      document.getElementById('dashboardPage').style.display = page === 'dashboard' ? 'flex' : 'none';
+      document.getElementById('providersPage').style.display = page === 'providers' ? 'flex' : 'none';
+      document.getElementById('routesPage').style.display = page === 'routes' ? 'flex' : 'none';
+      
+      document.getElementById('nav-dashboard').className = 'nav-item' + (page === 'dashboard' ? ' active' : '');
+      document.getElementById('nav-providers').className = 'nav-item' + (page === 'providers' ? ' active' : '');
+      document.getElementById('nav-routes').className = 'nav-item' + (page === 'routes' ? ' active' : '');
+      
+      if (page === 'dashboard') loadDashboard();
+      if (page === 'providers') loadProviders();
+      if (page === 'routes') { loadRoutes(); setupRouteSelectHandlers(); }
+    }
+
+    document.getElementById('nav-dashboard').onclick = function() { showPage('dashboard'); };
+    document.getElementById('nav-providers').onclick = function() { showPage('providers'); };
+    document.getElementById('nav-routes').onclick = function() { showPage('routes'); };
+
+    async function fetchAPI(endpoint) {
+      try {
+        const sep = endpoint.includes('?') ? '&' : '?';
+        const res = await fetch(endpoint + sep + '_t=' + Date.now());
+        return await res.json();
+      } catch (e) {
+        console.error('API error:', e);
+        return null;
+      }
+    }
+
+    async function loadDashboard() {
+      const [stats, providersData] = await Promise.all([
+        fetchAPI('/stats'),
+        fetchAPI('/providers')
+      ]);
+
+      document.getElementById('totalRequests').textContent = stats?.total ? stats.total.toLocaleString() : '-';
+      document.getElementById('successRate').textContent = stats?.total ? `${stats.successRate}%` : '-';
+      document.getElementById('avgLatency').textContent = stats?.avgLatency || '-';
+      document.getElementById('totalTokens').textContent = stats?.totalTokens ? stats.totalTokens.toLocaleString() : '-';
+      document.getElementById('promptTokens').textContent = stats?.promptTokens ? stats.promptTokens.toLocaleString() : '-';
+      document.getElementById('completionTokens').textContent = stats?.completionTokens ? stats.completionTokens.toLocaleString() : '-';
+      document.getElementById('activeModels').textContent = providersData?.providers?.filter(p => p.online).length || '-';
+
+      if (providersData?.providers) {
+        renderProviderList(providersData.providers);
+      }
+
+      if (stats?.recent) {
+        renderRecentRequests(stats.recent);
+      }
+    }
+
+    function renderProviderList(list) {
+      const container = document.getElementById('providerList');
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔌</div>
+            <div class="empty-state-text">暂无提供商，请前往提供商页面连接</div>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = list.map(p => `
+        <div class="provider-card ${p.online ? '' : 'offline'}">
+          <div class="provider-header">
+            <span class="provider-name">${p.name}</span>
+            <div class="provider-status">
+              <span class="status-dot ${p.cooldown ? 'cooldown' : p.online ? 'online' : 'offline'}"></span>
+              <span>${p.cooldown ? `${t.cooldown} ${p.cooldown}s` : p.online ? t.online : t.offline}</span>
+            </div>
+          </div>
+          <div class="provider-info">
+            <span>${p.models?.length || 0} ${t.models}</span>
+            ${p.latency ? `<span>${p.latency}ms</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRecentRequests(list) {
+      const container = document.getElementById('recentRequests');
+      if (!container) return;
+      if (!list || list.length === 0) {
+        container.innerHTML = `<div class="request-item"><span class="request-model">${t.noRequests}</span></div>`;
+        return;
+      }
+      container.innerHTML = list.map(r => `
+        <div class="request-item">
+          <span class="request-time">${r.time || '--:--'}</span>
+          <span class="request-type">${r.type || 'default'}</span>
+          <span class="request-arrow">→</span>
+          <span class="request-model">${r.model || '--'}</span>
+        </div>
+      `).join('');
+    }
+
+    async function loadProviders() {
+      await loadAllModelsList();
+    }
+
+    async function loadAllModelsList() {
+      const container = document.getElementById('allModelsList');
+      container.innerHTML = `<div class="loading">${t.loading}</div>`;
+      
+      const [providersData, localModelsData, configData] = await Promise.all([
+        fetchAPI('/providers'),
+        fetchAPI('/local-models'),
+        fetchAPI('/config')
+      ]);
+      
+      const configProviders = configData?.providers || [];
+      const statusProviders = providersData?.providers || [];
+      const localModels = localModelsData?.models || [];
+
+      // Merge status (online, latency) with config metadata (type, api_base_url, priority)
+      const cloudProviders = configProviders.map(cp => {
+        const status = statusProviders.find(sp => sp.name === cp.name) || {};
+        return { ...status, ...cp };
+      });
+      window.__cloudProviders = cloudProviders;
+      window.__configProviders = configProviders;
+      
+      if (cloudProviders.length === 0 && localModels.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔌</div>
+            <div class="empty-state-text">暂无模型，请先连接提供商</div>
+          </div>
+        `;
+        return;
+      }
+      
+      const icons = { ollama: '🦙', lmstudio: '💻', jan: '📦', openrouter: '🔗', deepseek: '🔷', anthropic: '📦', openai: '💬', moonshot: '🌙', custom: '⚙️' };
+      
+      let html = `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">`;
+      
+      // Cloud providers
+      for (const p of cloudProviders) {
+        html += `
+          <div class="provider-detail-card ${p.online ? '' : 'offline'}">
+            <div class="provider-detail-header">
+              <div>
+                <div class="provider-detail-title">${p.name}</div>
+                <div class="provider-detail-type">${p.type || t.openaiCompatible} <span style="font-size:10px;color:var(--accent-orange);">[${p.type || 'none'}]</span></div>
+              </div>
+              <div class="provider-detail-actions">
+                <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="openEditProviderModal('${p.name}', '${p.type}', '${p.api_base_url || ''}', '', '${(p.models || []).join(',')}', ${p.priority || 1})">${t.edit}</button>
+                <button class="btn btn-secondary" style="padding: 6px 12px; color: var(--accent-red);" onclick="deleteProvider('${p.name}')">${t.delete}</button>
+              </div>
+            </div>
+            <div class="provider-info">
+            <span>${p.api_base_url || t.apiBaseUrl}</span>
+            </div>
+            <div class="provider-detail-stats">
+              <div class="provider-stat">
+                <div class="provider-stat-value">${p.models?.length || 0}</div>
+                <div class="provider-stat-label">${t.models}</div>
+              </div>
+              <div class="provider-stat">
+                <div class="provider-stat-value" style="color: ${p.online ? 'var(--accent-green)' : 'var(--accent-red)'}">${p.online ? t.online : t.offline}</div>
+                <div class="provider-stat-label">${t.status}</div>
+              </div>
+              <div class="provider-stat">
+                <div class="provider-stat-value">${p.latency || '--'}</div>
+                <div class="provider-stat-label">${t.latency}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      // Local models
+      for (const m of localModels) {
+        html += `
+          <div class="provider-detail-card">
+            <div class="provider-detail-header">
+              <div>
+                <div class="provider-detail-title">${m.name}</div>
+                <div class="provider-detail-type">${m.source}</div>
+              </div>
+              <div class="provider-detail-actions">
+                <button class="btn btn-secondary" style="padding: 6px 12px; color: var(--accent-red);" onclick="deleteProvider('${m.name}', '${m.source}')">${t.delete}</button>
+              </div>
+            </div>
+            <div class="provider-info">
+              <span>本地模型 · ${(m.size / 1024 / 1024 / 1024).toFixed(1)}GB</span>
+            </div>
+            <div class="provider-detail-stats">
+              <div class="provider-stat">
+                <div class="provider-stat-value" style="color: var(--accent-green)">${t.online}</div>
+                <div class="provider-stat-label">${t.status}</div>
+              </div>
+              <div class="provider-stat">
+                <div class="provider-stat-value">--</div>
+                <div class="provider-stat-label">${t.latency}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function renderProviderManageList(list) {
+      const container = document.getElementById('providerManageList');
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🔌</div>
+            <div class="empty-state-text">${t.noProvider}</div>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = `<div class="provider-card-grid">` + list.map(p => `
+        <div class="provider-detail-card ${p.online ? '' : 'offline'}">
+          <div class="provider-detail-header">
+            <div>
+              <div class="provider-detail-title">${p.name}</div>
+              <div class="provider-detail-type">${p.type || t.openaiCompatible}</div>
+            </div>
+            <div class="provider-detail-actions">
+              <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="openEditProviderModal('${p.name}', '${p.type}', '${p.api_base_url || ''}', '${p.api_key || ''}', '${(p.models || []).join(',')}', ${p.priority || 1})">${t.edit}</button>
+              <button class="btn btn-secondary" style="padding: 6px 12px; color: var(--accent-red);" onclick="deleteProvider('${p.name}')">${t.delete}</button>
+            </div>
+          </div>
+          <div class="provider-info">
+            <span>${p.api_base_url || t.apiBaseUrl}</span>
+          </div>
+          <div class="provider-detail-stats">
+            <div class="provider-stat">
+              <div class="provider-stat-value">${p.models?.length || 0}</div>
+              <div class="provider-stat-label">${t.models}</div>
+            </div>
+            <div class="provider-stat">
+              <div class="provider-stat-value" style="color: ${p.online ? 'var(--accent-green)' : 'var(--accent-red)'}">${p.online ? t.online : t.offline}</div>
+              <div class="provider-stat-label">${t.status}</div>
+            </div>
+            <div class="provider-stat">
+              <div class="provider-stat-value">${p.latency || '--'}</div>
+              <div class="provider-stat-label">${t.latency}</div>
+            </div>
+          </div>
+        </div>
+      `).join('') + `</div>`;
+    }
+
+    function showAddProviderModal() {
+      document.getElementById('addProviderModal').classList.remove('hidden');
+    }
+
+    function closeAddProviderModal() {
+      document.getElementById('addProviderModal').classList.add('hidden');
+    }
+
+    async function saveProvider() {
+      const provider = {
+        type: document.getElementById('providerType').value,
+        name: document.getElementById('providerName').value || document.getElementById('providerType').value,
+        api_base_url: document.getElementById('providerBaseUrl').value,
+        api_key: document.getElementById('providerApiKey').value,
+        models: document.getElementById('providerModels').value.split(',').map(m => m.trim()).filter(m => m),
+        priority: parseInt(document.getElementById('providerPriority').value) || 1
+      };
+
+      try {
+        const res = await fetch('/providers/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(provider)
+        });
+        if (res.ok) {
+          closeAddProviderModal();
+          loadProviders();
+        }
+      } catch (e) {
+        console.error('Failed to save provider:', e);
+      }
+    }
+
+    async function refreshLocalModels() {
+      const container = document.getElementById('localModelsList');
+      container.innerHTML = `<div class="loading">${t.loading}</div>`;
+      
+      const data = await fetchAPI('/local-models');
+      if (data?.models) {
+        renderLocalModels(data.models);
+      } else {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🖥️</div>
+            <div class="empty-state-text">${t.noLocalModels}</div>
+            <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+              ${t.ensureRunning}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function renderLocalModels(models) {
+      const container = document.getElementById('localModelsList');
+      const icons = { ollama: '🦙', lmstudio: '💻', jan: '📦' };
+      container.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+          ${models.map(m => `
+            <div class="local-model-card">
+              <div class="local-model-info">
+                <div class="local-model-icon">${icons[m.source] || '🤖'}</div>
+                <div>
+                  <div class="local-model-name">${m.name}</div>
+                  <div class="local-model-meta">${m.source} · ${(m.size / 1024 / 1024 / 1024).toFixed(1)}GB</div>
+                </div>
+              </div>
+              <div class="local-model-status">
+                <span class="status-dot online"></span>
+                ${t.ready}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    async function loadRoutes() {
+      try {
+        const configData = await fetchAPI('/config');
+        const routesData = await fetchAPI('/routes');
+        
+        config = configData || {};
+        const routes = routesData?.routes || {};
+        const providers = configData?.providers || [];
+        
+        connectionMode = configData?.connectionMode || 'auto';
+        document.querySelectorAll('.mode-option').forEach(opt => {
+          opt.classList.toggle('active', opt.dataset.mode === connectionMode);
+        });
+
+        let manualRoutes = configData?.manualRoutes || {};
+        
+        if (connectionMode === 'auto') {
+          const schedulingStrategySelect = document.getElementById('schedulingStrategy');
+          if (schedulingStrategySelect) {
+            schedulingStrategySelect.value = configData?.schedulingStrategy || 'network-adaptive';
+          }
+        }
+        
+        const providerSelect = document.getElementById('routeDefault');
+        const modelSelect = document.getElementById('routeDefaultModel');
+        const savedRoute = manualRoutes['default'] || {};
+        const savedProvider = savedRoute.provider || '';
+        const savedModel = savedRoute.model || '';
+
+        if (providerSelect) {
+          providerSelect.innerHTML = `<option value="">${t.selectProvider}</option>` + 
+            providers.map(p => `<option value="${p.name}" ${savedProvider === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
+          if (savedProvider) {
+            providerSelect.value = savedProvider;
+          }
+        }
+
+        if (modelSelect) {
+          const providerModels = providers.find(p => p.name === savedProvider)?.models || [];
+          modelSelect.innerHTML = `<option value="">${t.selectModel}</option>` + 
+            providerModels.map(m => `<option value="${m}" ${savedModel === m ? 'selected' : ''}>${m}</option>`).join('');
+          if (savedModel && providerModels.includes(savedModel)) {
+            modelSelect.value = savedModel;
+          }
+        }
+
+        if (config.smartRouting?.autoSwitch) {
+          document.getElementById('maxRetries').value = config.smartRouting.autoSwitch.maxRetries || 3;
+          document.getElementById('cooldownSeconds').value = config.smartRouting.autoSwitch.cooldownSeconds || 60;
+          document.getElementById('fallbackChain').value = config.smartRouting.autoSwitch.fallbackChain?.join(', ') || '';
+          document.getElementById('retryDelay').value = config.smartRouting.autoSwitch.retryDelay || 1000;
+          document.getElementById('autoSwitchToggle').classList.toggle('active', config.smartRouting.autoSwitch.enabled !== false);
+        }
+
+        const routeModeLabel = document.getElementById('routeModeLabel');
+        const autoRouteConfig = document.getElementById('autoRouteConfig');
+        const manualRouteConfig = document.getElementById('manualRouteConfig');
+        const failoverSection = document.getElementById('failoverSection');
+
+        if (connectionMode === 'auto') {
+          if (routeModeLabel) routeModeLabel.textContent = t.autoModeLabel || '(自动调度模式)';
+          if (autoRouteConfig) autoRouteConfig.style.display = 'block';
+          if (manualRouteConfig) manualRouteConfig.style.display = 'none';
+          if (failoverSection) failoverSection.style.display = 'block';
+        } else {
+          if (routeModeLabel) routeModeLabel.textContent = t.manualModeLabel || '(手动选择模式)';
+          if (autoRouteConfig) autoRouteConfig.style.display = 'none';
+          if (manualRouteConfig) manualRouteConfig.style.display = 'grid';
+          if (failoverSection) failoverSection.style.display = 'none';
+        }
+      } catch (e) { console.error('loadRoutes error:', e); }
+    }
+
+    function setupRouteSelectHandlers() {
+      const select = document.getElementById('routeDefault');
+      if (select) {
+        select.addEventListener('change', async () => {
+          const modelSelect = document.getElementById('routeDefaultModel');
+          const providerName = select.value;
+          
+          if (!modelSelect) return;
+          
+          modelSelect.innerHTML = `<option value="">${t.selectModel || 'Select Model'}</option>`;
+          
+          if (!providerName) return;
+          
+          try {
+            const configData = await fetchAPI('/config');
+            const providers = configData?.providers || [];
+            const provider = providers.find(p => p.name === providerName);
+            
+            if (!provider) return;
+            
+            const models = provider.models || [];
+            
+            if (models.length > 0) {
+              modelSelect.innerHTML = `<option value="">${t.selectModel || 'Select Model'}</option>` + 
+                models.map(m => `<option value="${m}">${m}</option>`).join('');
+            }
+          } catch (err) {
+            console.error('Error loading models:', err);
+          }
+        });
+      }
+    }
+
+async function saveRoutes() {
+      const defaultProvider = document.getElementById('routeDefault').value;
+      const defaultModel = document.getElementById('routeDefaultModel').value;
+      
+      const manualRoutes = connectionMode === 'manual' ? {
+        default: {
+          provider: defaultProvider,
+          model: defaultModel
+        }
+      } : null;
+
+      const autoSwitch = {
+        enabled: document.getElementById('autoSwitchToggle').classList.contains('active'),
+        maxRetries: parseInt(document.getElementById('maxRetries').value) || 3,
+        retryDelay: parseInt(document.getElementById('retryDelay').value) || 1000,
+        cooldownSeconds: parseInt(document.getElementById('cooldownSeconds').value) || 60,
+        fallbackChain: document.getElementById('fallbackChain').value.split(',').map(s => s.trim()).filter(s => s)
+      };
+
+      const schedulingStrategy = connectionMode === 'auto' ?
+        (document.getElementById('schedulingStrategy')?.value || 'network-adaptive') : null;
+
+      const data = {
+        autoSwitch,
+        connectionMode,
+        schedulingStrategy,
+        manualRoutes
+      };
+
+      try {
+        const res = await fetch('/routes/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (res.ok) {
+          showToast(t.configSaved || '配置已保存', false);
+          await reloadConfig();
+        } else {
+          showToast(t.configSavedFailed || '保存失败', true);
+        }
+      } catch (e) {
+        console.error('Failed to save routes:', e);
+        showToast(t.connectionFailed || '保存失败', true);
+      }
+    }
+
+    async function saveAllConfig() {
+      await saveRoutes();
+    }
+
+    function refreshProviders() {
+      loadDashboard();
+    }
+
+    function toggleAutoSwitch() {
+      const toggle = document.getElementById('autoSwitchToggle');
+      toggle.classList.toggle('active');
+    }
+
+    async function reloadConfig() {
+      try {
+        const res = await fetch('/reload', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          loadRoutes();
+          loadDashboard();
+        }
+      } catch (e) {
+        console.error('Reload failed:', e);
+      }
+    }
+
+    function setConnectionMode(mode) {
+      connectionMode = mode;
+      document.querySelectorAll('.mode-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.mode === mode);
+      });
+
+      const routeModeLabel = document.getElementById('routeModeLabel');
+      const autoRouteConfig = document.getElementById('autoRouteConfig');
+      const manualRouteConfig = document.getElementById('manualRouteConfig');
+      const failoverSection = document.getElementById('failoverSection');
+
+      if (mode === 'auto') {
+        if (routeModeLabel) routeModeLabel.textContent = t.autoModeLabel || '(自动调度模式)';
+        if (autoRouteConfig) autoRouteConfig.style.display = 'block';
+        if (manualRouteConfig) manualRouteConfig.style.display = 'none';
+        if (failoverSection) failoverSection.style.display = 'block';
+      } else {
+        if (routeModeLabel) routeModeLabel.textContent = t.manualModeLabel || '(手动选择模式)';
+        if (autoRouteConfig) autoRouteConfig.style.display = 'none';
+        if (manualRouteConfig) manualRouteConfig.style.display = 'grid';
+        if (failoverSection) failoverSection.style.display = 'none';
+      }
+    }
+
+    async function loadProvidersForManualSelect() {
+      const configData = await fetchAPI('/config');
+      const providers = configData?.providers || [];
+      const manualProviderSelect = document.getElementById('manualProviderSelect');
+      const manualModelSelect = document.getElementById('manualModelSelect');
+      
+      manualProviderSelect.innerHTML = `<option value="">${t.selectProvider}</option>` + 
+        providers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+      manualModelSelect.innerHTML = `<option value="">${t.selectModel}</option>`;
+      
+      manualProviderSelect.addEventListener('change', () => {
+        const provider = providers.find(p => p.name === manualProviderSelect.value);
+        if (provider?.models) {
+          manualModelSelect.innerHTML = `<option value="">${t.selectModel}</option>` + 
+            provider.models.map(m => `<option value="${m}">${m}</option>`).join('');
+        }
+      });
+    }
+
+    function showToast(msg, isError = false) {
+      const existing = document.querySelector('.toast-message');
+      if (existing) existing.remove();
+      const toast = document.createElement('div');
+      toast.className = 'toast-message' + (isError ? ' error' : '');
+      toast.innerHTML = `<span style="margin-right:8px;font-size:16px;">${isError ? '❌' : '✅'}</span>${msg}`;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${isError ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'};
+        color: white;
+        padding: 14px 28px;
+        border-radius: 50px;
+        z-index: 9999;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        font-size: 15px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        animation: toastSlideIn 0.3s ease-out;
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastSlideOut 0.3s ease-in';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    window.toggleApiKeyVisibility = function() {
+      const input = document.getElementById('modalProviderApiKey');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    };
+
+    let editingProviderName = null;
+
+    window.openProviderModal = function() {
+      editingProviderName = null;
+      document.getElementById('modalProviderTitle').textContent = '添加提供商';
+      document.getElementById('modalProviderName').value = '';
+      document.getElementById('modalProviderType').value = 'openai';
+      document.getElementById('modalProviderBaseUrl').value = '';
+      document.getElementById('modalProviderApiKey').value = '';
+      document.getElementById('modalProviderModels').value = '';
+      document.getElementById('modalProviderPriority').value = '1';
+      document.getElementById('providerModal').style.display = 'flex';
+    };
+
+    window.openEditProviderModal = async function(name, type, baseUrl, apiKey, models, priority) {
+      editingProviderName = name;
+      const nameEl = document.getElementById('modalProviderName');
+      const typeEl = document.getElementById('modalProviderType');
+      const baseUrlEl = document.getElementById('modalProviderBaseUrl');
+      const apiKeyEl = document.getElementById('modalProviderApiKey');
+      const modelsEl = document.getElementById('modalProviderModels');
+      const priorityEl = document.getElementById('modalProviderPriority');
+      nameEl.value = name;
+      typeEl.value = type || 'openai';
+      baseUrlEl.value = baseUrl || '';
+      apiKeyEl.value = apiKey || '';
+      modelsEl.value = models || '';
+      priorityEl.value = priority || 1;
+      document.getElementById('modalProviderTitle').textContent = '编辑提供商';
+      document.getElementById('providerModal').style.display = 'flex';
+      try {
+        const res = await fetch('/provider/' + encodeURIComponent(name));
+        const provider = await res.json();
+        if (provider) {
+          if (provider.api_key && !apiKeyEl.value) apiKeyEl.value = provider.api_key;
+          if (provider.name) nameEl.value = provider.name;
+        }
+      } catch (e) {
+        console.error('Provider fetch error:', e);
+      }
+    };
+
+    window.closeProviderModal = function() {
+      document.getElementById('providerModal').style.display = 'none';
+      editingProviderName = null;
+    };
+
+    window.saveProviderFromModal = async function() {
+      const name = document.getElementById('modalProviderName').value || 'Provider';
+      const type = document.getElementById('modalProviderType').value;
+      const api_base_url = document.getElementById('modalProviderBaseUrl').value;
+      const api_key = document.getElementById('modalProviderApiKey').value;
+      const modelsStr = document.getElementById('modalProviderModels').value;
+      const priority = parseInt(document.getElementById('modalProviderPriority').value) || 1;
+
+      const models = modelsStr ? modelsStr.split(',').map(m => m.trim()).filter(m => m) : [];
+
+      const saveBtn = document.querySelector('#providerModal .btn-primary');
+      const originalText = saveBtn.textContent;
+      saveBtn.textContent = '保存中...';
+      saveBtn.disabled = true;
+
+      try {
+        let res;
+        const saveName = editingProviderName || name;
+        const body = {
+          name, type, models, priority,
+          ...(editingProviderName ? { oldName: editingProviderName } : {}),
+          ...(api_key ? { api_key } : {}),
+          ...(api_base_url ? { api_base_url } : {})
+        };
+        if (editingProviderName) {
+          res = await fetch('/providers/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        } else {
+          res = await fetch('/providers/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+        }
+        const data = await res.json();
+        if (data.success) {
+          showToast('配置已保存，正在测试连通性...');
+          
+          try {
+            const testRes = await fetch('/provider/' + encodeURIComponent(name) + '/test', { method: 'POST' });
+            const testData = await testRes.json();
+            if (testData.success) {
+              showToast('✅ 保存成功，连接正常！');
+            } else {
+              showToast('⚠️ 保存成功，但连接失败: ' + (testData.error || '未知错误'), true);
+            }
+          } catch (testErr) {
+            showToast('⚠️ 保存成功，测试连接时出错', true);
+          }
+          
+          closeProviderModal();
+          loadProviders();
+        } else {
+          showToast('保存失败: ' + (data.error || '未知错误'), true);
+        }
+      } catch (e) {
+        showToast('保存失败: ' + e.message, true);
+      } finally {
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+      }
+    };
+
+const providerConfigs = {
+      openrouter: {
+        name: 'OpenRouter',
+        icon: '🔗',
+        baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
+        models: 'anthropic/claude-3.5-sonnet,google/gemini-2.5-flash,deepseek/deepseek-chat',
+        descKey: 'providerOpenRouter'
+      },
+      deepseek: {
+        name: 'DeepSeek',
+        icon: '🔷',
+        baseUrl: 'https://api.deepseek.com/chat/completions',
+        models: 'deepseek-chat,deepseek-reasoner',
+        descKey: 'providerDeepSeek'
+      },
+      anthropic: {
+        name: 'Anthropic',
+        icon: '📦',
+        baseUrl: 'https://api.anthropic.com/v1/messages',
+        models: 'claude-sonnet-4-20250514,claude-opus-4-20250501,claude-haiku-3-20240307',
+        descKey: 'providerAnthropic'
+      },
+      openai: {
+        name: 'OpenAI',
+        icon: '💬',
+        baseUrl: 'https://api.openai.com/v1/chat/completions',
+        models: 'gpt-4.5-preview,gpt-4o,gpt-4-turbo,gpt-3.5-turbo',
+        descKey: 'providerOpenAI'
+      },
+      moonshot: {
+        name: 'Moonshot',
+        icon: '🌙',
+        baseUrl: 'https://api.moonshot.ai/v1/chat/completions',
+        models: 'kimi-k2,kimi-k2-preview,kimi-k1.5',
+        descKey: 'providerMoonshot'
+      },
+      gemini: {
+        name: 'Gemini',
+        icon: '✨',
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models/',
+        models: 'gemini-2.5-flash,gemini-2.5-pro',
+        descKey: 'providerGemini'
+      },
+      volcengine: {
+        name: 'Volcengine',
+        icon: '🌋',
+        baseUrl: 'https://ark.cn-beijing.volces.com/api/v3/chat/completions',
+        models: 'deepseek-v3,deepseek-r1',
+        descKey: 'providerVolcengine'
+      },
+      modelscope: {
+        name: 'ModelScope',
+        icon: '🔬',
+        baseUrl: 'https://api-inference.modelscope.cn/v1/chat/completions',
+        models: '',
+        descKey: 'providerModelScope'
+      },
+      dashscope: {
+        name: 'DashScope',
+        icon: '☁️',
+        baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+        models: '',
+        descKey: 'providerDashScope'
+      },
+      ollama: {
+        name: 'Ollama',
+        icon: '🦙',
+        baseUrl: 'http://localhost:11434/v1/chat/completions',
+        models: '',
+        descKey: 'providerOllama'
+      },
+      lmstudio: {
+        name: 'LM Studio',
+        icon: '💻',
+        baseUrl: 'http://localhost:1234/v1/chat/completions',
+        models: '',
+        descKey: 'providerLMStudio'
+      },
+      custom: {
+        name: '自定义',
+        icon: '⚙️',
+        baseUrl: '',
+        models: '',
+        descKey: 'providerCustom'
+      }
+    };
+
+    const providerTypeNames = {
+      openrouter: 'OpenRouter',
+      deepseek: 'DeepSeek',
+      anthropic: 'Anthropic',
+      openai: 'OpenAI',
+      moonshot: 'Moonshot',
+      ollama: 'Ollama',
+      lmstudio: 'LM Studio',
+      jan: 'Jan',
+      custom: 'Custom'
+    };
+
+    const providerTypeDescs = {
+      openrouter: 'Aggregated models',
+      deepseek: 'DeepSeek AI',
+      anthropic: 'Claude series',
+      openai: 'GPT series',
+      moonshot: 'Kimi series',
+      ollama: 'Local models',
+      lmstudio: 'Local model manager',
+      jan: 'Local model server',
+      custom: 'OpenAI compatible'
+    };
+
+    let selectedProviderType = 'openrouter';
+
+    document.querySelectorAll('.provider-type-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.provider-type-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        selectedProviderType = item.dataset.type;
+        updateConfigPanel();
+      });
+    });
+
+    function updateConfigPanel() {
+      const config = providerConfigs[selectedProviderType];
+      if (!config) return;
+
+      const typeName = providerTypeNames[selectedProviderType] || config.name;
+      document.getElementById('selectedProviderName').textContent = typeName;
+
+      document.getElementById('providerName').value = config.name;
+      document.getElementById('providerBaseUrl').value = config.baseUrl;
+      document.getElementById('providerBaseUrl').readOnly = false;
+      document.getElementById('providerApiKey').value = '';
+      document.getElementById('providerModels').value = config.models;
+      document.getElementById('providerPriority').value = '1';
+
+      const existingMsg = document.querySelector('.success-message, .error-message');
+      if (existingMsg) existingMsg.remove();
+    }
+
+    async function connectProvider() {
+      const btn = document.querySelector('.connect-btn');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = `<span class="connecting-indicator"></span> ${t.connecting}`;
+      btn.disabled = true;
+
+      const provider = {
+        type: selectedProviderType,
+        name: document.getElementById('providerName').value || providerConfigs[selectedProviderType].name,
+        api_base_url: document.getElementById('providerBaseUrl').value,
+        api_key: document.getElementById('providerApiKey').value,
+        models: document.getElementById('providerModels').value.split(',').map(m => m.trim()).filter(m => m),
+        priority: parseInt(document.getElementById('providerPriority').value) || 1
+      };
+
+      const existingMsg = document.querySelector('.success-message, .error-message');
+      if (existingMsg) existingMsg.remove();
+
+      try {
+        const res = await fetch('/providers/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(provider)
+        });
+        
+        if (res.ok) {
+          const panel = document.getElementById('providerConfigPanel');
+          const successMsg = document.createElement('div');
+          successMsg.className = 'success-message';
+          successMsg.innerHTML = `
+            <span style="font-size: 18px;">✓</span>
+            <span>${t.providerAdded}</span>
+          `;
+          panel.appendChild(successMsg);
+          
+          setTimeout(() => {
+            loadProviders();
+            updateConfigPanel();
+          }, 1500);
+        } else {
+          const panel = document.getElementById('providerConfigPanel');
+          const errorMsg = document.createElement('div');
+          errorMsg.className = 'error-message';
+          errorMsg.innerHTML = `
+            <span style="font-size: 18px;">✗</span>
+            <span>${t.connectionFailed}</span>
+          `;
+          panel.appendChild(errorMsg);
+        }
+      } catch (e) {
+        const panel = document.getElementById('providerConfigPanel');
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'error-message';
+        errorMsg.innerHTML = `
+          <span style="font-size: 18px;">✗</span>
+          <span>${t.connectionFailed}: ${e.message}</span>
+        `;
+        panel.appendChild(errorMsg);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    window.deleteProvider = async function(name, source) {
+      if (!name) return;
+      if (!confirm(source ? `确定删除本地模型 ${name}?` : `确定删除提供商 ${name}?`)) return;
+      
+      try {
+        const res = await fetch('/providers/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, source })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('删除成功');
+          await loadProviders();
+        } else {
+          showToast('删除失败: ' + (data.error || '未知错误'), true);
+        }
+      } catch (e) {
+        showToast('删除失败: ' + e.message, true);
+      }
+    };
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>

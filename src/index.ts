@@ -1,0 +1,12 @@
+export * from './config';
+export * from './providers/base';
+export * from './core/failover';
+export * from './core/provider-manager';
+export { Router, router } from './core/router';
+export type { RouteResult as CoreRouteResult } from './core/router';
+export { adapterRegistry, ProviderAdapter, AdapterMetadata, AdapterTransformers, AdapterHooks, AdapterLifecycle, AdapterPlugin } from './providers/registry';
+export { AgentAdapter, AdapterContext, builtInAdapters, createAdapterContext } from './agents/types';
+export type { AdapterManifest, AdapterLoader } from './agents/types';
+export * from './plugins/plugin-api';
+export { PluginManager, pluginManager } from './plugins/plugin-manager';
+export { PluginService, pluginService } from './plugins/plugin-service';

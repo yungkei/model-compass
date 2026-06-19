@@ -1,0 +1,111 @@
+{
+  "version": "1.0.0",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 3456,
+    "timeout": 600000
+  },
+  "providers": [
+    {
+      "name": "openrouter",
+      "type": "openai",
+      "api_base_url": "https://openrouter.ai/api/v1",
+      "api_key": "${OPENROUTER_API_KEY}",
+      "models": [
+        "anthropic/claude-3.5-sonnet",
+        "anthropic/claude-3.7-sonnet:thinking",
+        "google/gemini-2.5-flash",
+        "google/gemini-2.5-pro-preview",
+        "deepseek/deepseek-chat-v3-0324"
+      ],
+      "priority": 1,
+      "weight": 100,
+      "fallback": ["deepseek", "ollama"]
+    },
+    {
+      "name": "deepseek",
+      "type": "openai",
+      "api_base_url": "https://api.deepseek.com/v1",
+      "api_key": "${DEEPSEEK_API_KEY}",
+      "models": ["deepseek-chat", "deepseek-reasoner"],
+      "priority": 2,
+      "weight": 80
+    },
+    {
+      "name": "ollama",
+      "type": "ollama",
+      "api_base_url": "http://localhost:11434",
+      "models": ["qwen2.5-coder:latest", "llama3:latest"],
+      "priority": 3,
+      "weight": 60
+    },
+    {
+      "name": "kimi",
+      "type": "openai",
+      "api_base_url": "https://api.moonshot.cn/v1",
+      "api_key": "${KIMI_API_KEY}",
+      "models": ["kimi-chat", "kimi-thinking"],
+      "priority": 2,
+      "weight": 85
+    },
+    {
+      "name": "siliconflow",
+      "type": "openai",
+      "api_base_url": "https://api.siliconflow.cn/v1",
+      "api_key": "${SILICONFLOW_API_KEY}",
+      "models": [
+        "Qwen/Qwen3-8B",
+        "Qwen/Qwen3-235B-A22B-Thinking-25"
+      ],
+      "priority": 2,
+      "weight": 70
+    }
+  ],
+  "router": {
+    "default": "openrouter,anthropic/claude-3.5-sonnet",
+    "background": "ollama,qwen2.5-coder:latest",
+    "think": "deepseek,deepseek-reasoner",
+    "longContext": "openrouter,google/gemini-2.5-pro-preview",
+    "longContextThreshold": 60000,
+    "webSearch": "openrouter,anthropic/claude-3.5-sonnet:online",
+    "image": "openrouter,google/gemini-2.5-flash"
+  },
+  "smartRouting": {
+    "enabled": true,
+    "autoSwitch": {
+      "enabled": true,
+      "retryableErrors": [429, 500, 502, 503, 504],
+      "maxRetries": 3,
+      "retryDelay": 1000,
+      "cooldownSeconds": 60,
+      "fallbackChain": ["deepseek", "ollama", "kimi"]
+    },
+    "loadBalance": {
+      "enabled": false,
+      "strategy": "round-robin"
+    },
+    "costOptimization": {
+      "enabled": false,
+      "maxBudget": 100,
+      "preferCheaperOnSimple": true
+    }
+  },
+  "plugins": {
+    "claudeCode": {
+      "enabled": true,
+      "dynamicModels": true
+    },
+    "opencode": {
+      "enabled": true,
+      "dynamicModels": true
+    },
+    "pluginDir": "~/.model-compass/plugins",
+    "adapters": {}
+  },
+  "connectionMode": "auto",
+  "modelMapping": {},
+  "logging": {
+    "level": "info",
+    "file": "~/.model-compass.log"
+  }
+}
