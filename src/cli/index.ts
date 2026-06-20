@@ -19,7 +19,7 @@ console.log(
 );
 console.log('━'.repeat(60));
 console.log('Intelligent LLM Routing System');
-console.log('Version: 1.1.0');
+console.log('Version: 1.1.1');
 console.log('License: Apache-2.0');
 console.log('━'.repeat(60));
 console.log('');
