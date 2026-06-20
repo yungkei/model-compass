@@ -108,10 +108,7 @@ cp config.example.json ~/.model-compass/config.json
 **Option A: Launch Claude Code**
 
 ```bash
-# Write Claude Code config file (sets ANTHROPIC_BASE_URL to local proxy)
-mc plugin install claude
-
-# Launch Claude Code through the proxy
+# Launch Claude Code through the proxy (no plugins required)
 mc code
 ```
 
@@ -273,16 +270,16 @@ If the model value contains a comma (`openrouter,gpt-4o`), the first part is the
 
 ## Claude Code Integration
 
-> **Note:** `mc code` is a pure launcher — it spawns the agent process but does **not** install any plugins. To write config files for Claude Code (or other agents), run `mc plugin install <id>` first.
+> **Note:** `mc code` works out of the box — no plugins needed. It sets `ANTHROPIC_BASE_URL` via environment variables at launch time. The `mc plugin install claude` step is only needed if you want to run `claude` directly (outside of `mc code`) and have it still route through the proxy.
 
 ### Method 1: `mc code` (recommended)
 
 ```bash
-# Optional: write config files first
-mc plugin install claude
-
-# Launch Claude Code
+# Launch Claude Code through the proxy
 mc code
+
+# (Optional) Install plugin for direct `claude` usage:
+# mc plugin install claude
 ```
 
 This command:

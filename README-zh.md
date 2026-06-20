@@ -108,10 +108,7 @@ cp config.example.json ~/.model-compass/config.json
 **方式 A：启动 Claude Code**
 
 ```bash
-# 写入 Claude Code 配置文件（设置 ANTHROPIC_BASE_URL 指向本地代理）
-mc plugin install claude
-
-# 通过代理启动 Claude Code
+# 通过代理启动 Claude Code（无需安装插件）
 mc code
 ```
 
@@ -273,16 +270,16 @@ Commands:
 
 ## Claude Code 集成
 
-> **注意：** `mc code` 是纯启动器——它启动 agent 进程但**不会**安装任何插件。要为 Claude Code（或其他 agent）写入配置文件，请先运行 `mc plugin install <id>`。
+> **注意：** `mc code` 开箱即用，无需安装插件。它通过环境变量设置 `ANTHROPIC_BASE_URL`。只有在你想直接运行 `claude` 命令（而不是通过 `mc code`）并且希望它也走代理时，才需要 `mc plugin install claude`。
 
 ### 方式 1：`mc code`（推荐）
 
 ```bash
-#（可选）先写入配置文件
-mc plugin install claude
-
-# 启动 Claude Code
+# 通过代理启动 Claude Code
 mc code
+
+#（可选）安装插件以便直接使用 `claude` 命令：
+# mc plugin install claude
 ```
 
 此命令：

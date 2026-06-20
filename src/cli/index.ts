@@ -62,8 +62,9 @@ program
 
     if (adapterManager.getInstalled().length === 0) {
       console.log('');
-      console.log('💡 Tip: Run \'mc plugin market list\' to browse installable plugins');
-      console.log('   Or:  \'mc init --quick\' to install commonly used plugins');
+      console.log('💡 Tip: \'mc code\' launches Claude Code directly (no plugins needed)');
+      console.log('   Browse plugins:  \'mc plugin market list\'');
+      console.log('   Quick setup:     \'mc init --quick\'');
     }
   });
 
