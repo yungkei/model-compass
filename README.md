@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.1.1-blue?style=flat" alt="version">
+  <img src="https://img.shields.io/npm/v/@yungkei/model-compass?style=flat" alt="version">
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat" alt="license">
   <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=flat&logo=node.js" alt="node version">
   <img src="https://img.shields.io/badge/types-TypeScript-blue?style=flat&logo=typescript" alt="typescript">
