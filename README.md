@@ -48,18 +48,21 @@ Model Compass is a lightweight, self-hosted API gateway that sits between your L
 
 ### Built-in vs Installable
 
-| Feature | Built-in | Install via |
-|---------|----------|-------------|
-| Server & dashboard (`mc start`) | ✅ | — |
-| Agent launcher (`mc code`) | ✅ | — |
-| Anthropic ↔ OpenAI conversion | ✅ | — |
-| Provider adapters: OpenAI, Ollama, Anthropic, Gemini | ✅ | — |
-| Adapters: Alibaba, Bedrock, Azure, xAI, Mistral, Cohere | ✅ | — |
-| Routing & failover | ✅ | — |
-| MCP model/tool plugins | ✅ | — |
-| Agent config files (claude, opencode, cursor, windsurf) | ❌ | `mc plugin install <id>` |
-| NPM provider/router plugins | ❌ | `mc plugin install-npm <package>` |
+| Component | Ships in npm | How to use |
+|-----------|-------------|------------|
+| Server & dashboard (`mc start`) | ✅ | `mc start` |
+| Routing & failover | ✅ | automatic |
+| Anthropic ↔ OpenAI conversion | ✅ | automatic via `/v1/messages` |
+| Provider adapters: OpenAI, Ollama, Anthropic, Gemini | ✅ | automatic (selected by provider `type`) |
+| MCP model/tool plugins | ✅ | automatic |
+| Agent launcher (`mc code`) | ✅ | `mc code` |
+| Agent templates (claude, opencode, cursor, windsurf) | ✅ | `mc plugin install <id>` |
+| Adapter sources: Alibaba, Bedrock, Azure, xAI, Mistral, Cohere | ✅ (source only) | not wired up yet |
+| Agent plugins (jan, lmstudio, continue, zed) | ✅ (market definitions) | `mc plugin install <id>` |
+| NPM provider/router plugins | ❌ (remote market) | `mc plugin install-npm <package>` |
 | Common plugin bundle | ❌ | `mc init --quick` |
+| GitHub-hosted plugins | ❌ | `mc plugin install-github <repo>` |
+| Custom marketplace | ❌ | `mc market add <url>` |
 
 ## Installation
 
