@@ -27,7 +27,7 @@ console.log('');
 program
   .name('mc')
   .description('Model Compass CLI - Intelligent LLM routing tool')
-  .version('1.0.0');
+  .version('1.1.1');
 
 import { addCommand as addCodeCommands } from './agent-code';
 import { addPluginCommands } from './plugin';
