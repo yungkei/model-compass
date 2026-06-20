@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat" alt="version">
+  <img src="https://img.shields.io/npm/v/@yungkei/model-compass?style=flat" alt="version">
   <img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat" alt="license">
   <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=flat&logo=node.js" alt="node version">
   <img src="https://img.shields.io/badge/types-TypeScript-blue?style=flat&logo=typescript" alt="typescript">
@@ -29,7 +29,7 @@ Model Compass 是一个轻量级、自托管的 API 网关，位于你的 LLM �
 ### 为什么选择 Model Compass？
 
 - **无 Python 依赖** — npm 安装即可运行，单一 Node.js 进程
-- **Claude Code 原生支持** — 内置 Anthropic↔OpenAI 转换，无需额外配置
+- **Claude Code 原生支持** — 内置 Anthropic↔OpenAI 转换
 - **自带 Web UI** — 运行时管理提供商和路由
 - **插件系统** — 支持适配器、市场和 agent 配置扩展
 
@@ -49,26 +49,40 @@ Model Compass 是一个轻量级、自托管的 API 网关，位于你的 LLM �
 ## 安装
 
 ```bash
-# 全局安装
+# 全局安装（推荐）
 npm install -g @yungkei/model-compass
 
-# 或克隆本地运行
+# 或克隆本地构建
 git clone https://github.com/yungkei/model-compass.git
 cd model-compass
 npm install
-npm run dev
+npm run build
 ```
 
 ## 快速开始
 
-### 1. 创建配置
+### 1. 启动服务
+
+```bash
+mc start
+```
+
+打开 [http://localhost:8765](http://localhost:8765) 访问**管理面板**，可以在浏览器中添加提供商、配置路由和监控健康状态。
+
+### 2. 添加提供商
+
+在管理面板中点击 **Add Provider** 并填写：
+- **Provider Name** — 如 `openrouter`
+- **API Base URL** — 如 `https://openrouter.ai/api/v1`
+- **API Key** — 你的提供商密钥
+- **Models** — 逗号分隔的模型 ID
+
+或手动创建配置文件：
 
 ```bash
 mkdir -p ~/.model-compass
 cp config.example.json ~/.model-compass/config.json
 ```
-
-至少添加一个提供商和有效 API Key：
 
 ```json
 {
@@ -89,20 +103,38 @@ cp config.example.json ~/.model-compass/config.json
 }
 ```
 
-### 2. 启动服务
+### 3. 开始使用
+
+**方式 A：启动 Claude Code**
 
 ```bash
-npm run dev
+# 写入 Claude Code 配置文件（设置 ANTHROPIC_BASE_URL 指向本地代理）
+mc plugin install claude
+
+# 通过代理启动 Claude Code
+mc code
 ```
 
-打开 [http://localhost:8765](http://localhost:8765)。
-
-### 3. 发送请求
+**方式 B：发送 API 请求**
 
 ```bash
 curl http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model": "openrouter,anthropic/claude-3.5-sonnet", "messages": [{"role": "user", "content": "你好！"}]}'
+```
+
+### 4. （可选）安装更多插件
+
+```bash
+# 快速安装常用集成
+mc init --quick
+
+# 浏览可用插件
+mc plugin market list
+
+# 安装特定集成
+mc plugin install cursor
+mc plugin install opencode
 ```
 
 ## 配置说明
@@ -137,14 +169,15 @@ API Key 支持 `${ENV_VAR}` 语法，例如 `"${OPENROUTER_API_KEY}"` 从运行�
 Usage: mc <command> [options]
 
 Commands:
-  start     启动服务
-  model     列出配置的模型
-  provider  管理提供商 (list, status, add, remove)
+  start     启动 Model Compass 服务
+  model     管理模型列表
+  provider  管理提供商（list, status, add, remove）
   route     查看或设置路由
   config    查看/编辑配置
-  code      启动 Claude Code 或管理 agents
-  plugin    管理 agent 插件
-  market    市场插件管理
+  code      启动 agent 或管理 agents
+  plugin    管理插件（市场、npm、GitHub、agent 适配器）
+  adapter   管理 Agent 适配器（内置 + 自定义）
+  init      一键安装常用插件
 ```
 
 ### `mc start`
@@ -168,15 +201,46 @@ mc code sessions            列出所有会话
 mc code context             显示全局上下文
 ```
 
-### `mc market`
+### `mc plugin`
 
 ```
 Commands:
-  list [-s, --search <keyword>]   列出市场插件
-  install <id>                     从市场安装插件
-  add <url>                        添加自定义市场
-  remove <name>                    删除自定义市场
-  refresh                          刷新远程仓库
+  install <id>                         从市场或 npm 安装
+  install-npm <package> [version]      直接从 npm 安装
+  install-github <repo> [ref]          从 GitHub 安装
+  install-agent <name>                 安装 agent 适配器（claude, cursor...）
+  list                                 列出所有已安装插件
+  list-agents                          列出 agent 适配器插件
+  search <keyword>                     搜索市场
+  uninstall <id>                       卸载插件
+  reload                               从磁盘重新加载所有插件
+  market list [-s <keyword>]           列出市场插件
+  market add <url>                     添加自定义市场
+  market remove <name>                 删除自定义市场
+  market refresh                       刷新远程仓库
+  market config                        查看市场配置
+```
+
+### `mc init`
+
+```
+Options:
+  --quick     一键安装常用插件（claude, opencode, cursor）
+  --list      列出所有可用插件
+```
+
+### `mc adapter`
+
+```
+Commands:
+  list                  列出所有可用适配器
+  installed             显示已安装适配器
+  install <id>          安装适配器
+  uninstall <id>        卸载适配器
+  reload                重新加载自定义适配器
+  create <id>           创建自定义适配器模板
+  remove <id>           删除自定义适配器
+  dev                   显示自定义适配器开发指南
 ```
 
 ## API 概览
@@ -209,9 +273,15 @@ Commands:
 
 ## Claude Code 集成
 
+> **注意：** `mc code` 是纯启动器——它启动 agent 进程但**不会**安装任何插件。要为 Claude Code（或其他 agent）写入配置文件，请先运行 `mc plugin install <id>`。
+
 ### 方式 1：`mc code`（推荐）
 
 ```bash
+#（可选）先写入配置文件
+mc plugin install claude
+
+# 启动 Claude Code
 mc code
 ```
 
@@ -249,10 +319,10 @@ mc code context                 # 显示当前上下文
 ## 构建与测试
 
 ```bash
-npm run build            # 编译 TypeScript 到 dist/
-npm run dev              # 从源码运行（ts-node，热重载）
-npm run test             # 运行单元测试（vitest）
-npm run test:watch       # 监听模式运行测试
+npm run build          # 编译 TypeScript 到 dist/
+npm run dev            # 从源码运行（ts-node，热重载）
+npm run test           # 运行单元测试（vitest）
+npm run test:watch     # 监听模式运行测试
 ```
 
 ---
