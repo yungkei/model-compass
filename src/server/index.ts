@@ -13,6 +13,9 @@ import { PluginLoader } from '../plugins/plugin-loader';
 import { registerChatRoutes } from './routes/chat';
 import { requestStats } from './request-stats';
 
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '../../package.json'), 'utf-8'));
+const appVersion = pkg.version;
+
 const app = express();
 
 app.use(cors());
@@ -22,7 +25,9 @@ const uiPath = path.join(__dirname, '../../public');
 if (fs.existsSync(uiPath)) {
   app.use(express.static(uiPath));
   app.get('/', (_req: Request, res: Response) => {
-    res.sendFile(path.join(uiPath, 'index.html'));
+    let html = fs.readFileSync(path.join(uiPath, 'index.html'), 'utf-8');
+    html = html.replace(/v\d+\.\d+\.\d+/g, `v${appVersion}`);
+    res.type('html').send(html);
   });
 }
 
