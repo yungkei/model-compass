@@ -111,7 +111,7 @@ describe('MarketPlugin', () => {
   });
 
   it('should support hooks', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'custom',
       name: 'Custom',
       type: 'custom',

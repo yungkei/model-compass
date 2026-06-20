@@ -4,7 +4,7 @@
   "description": "Intelligent LLM routing system with multi-provider support, automatic failover, and runtime data source switching",
   "author": "yungkei <yungkei@github.com>",
   "license": "Apache-2.0",
-  "main": "dist/server/index.js",
+  "main": "dist/index.js",
   "bin": {
     "mc": "./dist/cli/index.js"
   },
@@ -58,6 +58,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.3.2",
     "vitest": "^2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=18.0.0"

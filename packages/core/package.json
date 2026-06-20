@@ -1,0 +1,14 @@
+{
+  "name": "@yungkei/model-compass-core",
+  "version": "1.0.0",
+  "description": "Core types and API for Model Compass plugins",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@yungkei/model-compass": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
