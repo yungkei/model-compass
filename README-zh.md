@@ -48,21 +48,20 @@ Model Compass 是一个轻量级、自托管的 API 网关，位于你的 LLM �
 
 ### 内置 vs 可安装
 
-| 组件 | NPM 包中 | 使用方式 |
-|------|----------|----------|
-| 服务与管理面板 (`mc start`) | ✅ | `mc start` |
-| 路由与故障转移 | ✅ | 自动生效 |
-| Anthropic ↔ OpenAI 转换 | ✅ | 自动，通过 `/v1/messages` |
-| 提供商适配器：OpenAI、Ollama、Anthropic、Gemini | ✅ | 自动（按 provider `type` 选择） |
-| MCP 模型/工具插件 | ✅ | 自动 |
-| Agent 启动器 (`mc code`) | ✅ | `mc code` |
-| Agent 模板 (claude, opencode, cursor, windsurf) | ✅ | `mc plugin install <id>` |
-| 适配器源码：Alibaba、Bedrock、Azure、xAI、Mistral、Cohere | ✅（仅源码） | 尚未接线 |
-| Agent 插件 (jan, lmstudio, continue, zed) | ✅（市场定义） | `mc plugin install <id>` |
-| NPM 提供商/路由插件 | ❌（远程市场） | `mc plugin install-npm <package>` |
-| 常用插件集合 | ❌ | `mc init --quick` |
-| GitHub 托管插件 | ❌ | `mc plugin install-github <repo>` |
-| 自定义市场 | ❌ | `mc market add <url>` |
+| 组件 | 内置（开箱即用） | 需 `mc plugin install` |
+|------|-----------------|------------------------|
+| 服务与管理面板 (`mc start`) | ✅ | — |
+| 路由与故障转移 | ✅ | — |
+| Anthropic ↔ OpenAI 转换 | ✅ | — |
+| 提供商适配器 (OpenAI, Ollama, Anthropic, Gemini) | ✅ | — |
+| MCP 模型/工具插件 | ✅ | — |
+| Agent 启动器 (`mc code`) | ✅ | — |
+| Agent 配置 (claude, opencode, cursor, windsurf) | — | `mc plugin install <id>` |
+| 集成插件 (jan, lmstudio, continue, zed) | — | `mc plugin install <id>` |
+| NPM 提供商/路由插件 | — | `mc plugin install-npm <package>` |
+| GitHub 托管插件 | — | `mc plugin install-github <repo>` |
+| 常用插件集合 | — | `mc init --quick` |
+| 自定义市场 | — | `mc market add <url>` |
 
 ## 安装
 
