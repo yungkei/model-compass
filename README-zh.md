@@ -46,6 +46,21 @@ Model Compass 是一个轻量级、自托管的 API 网关，位于你的 LLM �
 - **评分自动路由** — 四种策略：网络自适应、优先级、负载均衡、成本优化
 - **插件系统** — Agent 插件、提供商适配器、市场扩展
 
+### 内置 vs 可安装
+
+| 功能 | 内置 | 安装方式 |
+|------|------|----------|
+| 服务与管理面板 (`mc start`) | ✅ | — |
+| Agent 启动器 (`mc code`) | ✅ | — |
+| Anthropic ↔ OpenAI 转换 | ✅ | — |
+| 提供商适配器：OpenAI、Ollama、Anthropic、Gemini | ✅ | — |
+| 适配器：Alibaba、Bedrock、Azure、xAI、Mistral、Cohere | ✅ | — |
+| 路由与故障转移 | ✅ | — |
+| MCP 模型/工具插件 | ✅ | — |
+| Agent 配置文件 (claude, opencode, cursor, windsurf) | ❌ | `mc plugin install <id>` |
+| NPM 提供商/路由插件 | ❌ | `mc plugin install-npm <package>` |
+| 常用插件集合 | ❌ | `mc init --quick` |
+
 ## 安装
 
 ```bash

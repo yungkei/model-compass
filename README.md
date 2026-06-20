@@ -46,6 +46,21 @@ Model Compass is a lightweight, self-hosted API gateway that sits between your L
 - **Scoring-based auto routing** — Four strategies: network-adaptive, priority-based, load-balance, cost-optimized
 - **Plugin system** — Agent plugins, provider adapters, and marketplace for extending functionality
 
+### Built-in vs Installable
+
+| Feature | Built-in | Install via |
+|---------|----------|-------------|
+| Server & dashboard (`mc start`) | ✅ | — |
+| Agent launcher (`mc code`) | ✅ | — |
+| Anthropic ↔ OpenAI conversion | ✅ | — |
+| Provider adapters: OpenAI, Ollama, Anthropic, Gemini | ✅ | — |
+| Adapters: Alibaba, Bedrock, Azure, xAI, Mistral, Cohere | ✅ | — |
+| Routing & failover | ✅ | — |
+| MCP model/tool plugins | ✅ | — |
+| Agent config files (claude, opencode, cursor, windsurf) | ❌ | `mc plugin install <id>` |
+| NPM provider/router plugins | ❌ | `mc plugin install-npm <package>` |
+| Common plugin bundle | ❌ | `mc init --quick` |
+
 ## Installation
 
 ```bash
