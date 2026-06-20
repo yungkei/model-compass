@@ -69,7 +69,7 @@ mc start
 
 Open [http://localhost:8765](http://localhost:8765) to access the **management dashboard**, where you can add providers, configure routes, and monitor health — all from the browser.
 
-### 2. Add a provider (via dashboard)
+### 2. Add a provider
 
 In the dashboard, click **Add Provider** and fill in:
 - **Provider Name** — e.g. `openrouter`
@@ -103,27 +103,38 @@ cp config.example.json ~/.model-compass/config.json
 }
 ```
 
-### 3. Install plugins (optional)
+### 3. Use it
+
+**Option A: Launch Claude Code**
 
 ```bash
-# Quick setup — install commonly used integrations
-mc init --quick
-
-# Or browse available plugins
-mc plugin market list
-
-# Install specific plugins
+# Write Claude Code config file (sets ANTHROPIC_BASE_URL to local proxy)
 mc plugin install claude
-mc plugin install cursor
-mc plugin install opencode
+
+# Launch Claude Code through the proxy
+mc code
 ```
 
-### 4. Send a request
+**Option B: Send API requests**
 
 ```bash
 curl http://localhost:8765/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{"model": "openrouter,anthropic/claude-3.5-sonnet", "messages": [{"role": "user", "content": "Hello!"}]}'
+```
+
+### 4. (Optional) Install more plugins
+
+```bash
+# Quick setup — install commonly used integrations
+mc init --quick
+
+# Browse available plugins
+mc plugin market list
+
+# Install specific integrations
+mc plugin install cursor
+mc plugin install opencode
 ```
 
 ## Configuration Overview
