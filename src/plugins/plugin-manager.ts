@@ -178,24 +178,30 @@ export class PluginManager {
   async installFromNpm(packageName: string, version?: string): Promise<PluginLoadResult> {
     const fullPackageName = version ? `${packageName}@${version}` : packageName;
     console.log(`🚀 Installing plugin from npm: ${fullPackageName}`);
-    const installDir = path.join(this.pluginDir, packageName.replace('@', '').replace('/', '-'));
+    const pluginName = packageName.replace('@', '').replace('/', '-');
+    const targetDir = path.join(this.pluginDir, pluginName);
+    const tempDir = path.join(this.pluginDir, `.tmp-${pluginName}`);
 
     try {
+      fs.mkdirSync(tempDir, { recursive: true });
       execSync('npm --version', { stdio: 'ignore' } as any);
-      execSync(`npm install ${fullPackageName} --no-save --prefix "${installDir}"`, { stdio: 'inherit', shell: true } as any);
+      execSync(`npm install ${fullPackageName} --no-save --prefix "${tempDir}"`, { stdio: 'inherit', shell: true } as any);
 
-      const result = await this.loadPlugin(path.join(installDir, 'node_modules', packageName));
+      const installedPath = path.join(tempDir, 'node_modules', packageName);
+      if (fs.existsSync(targetDir)) {
+        fs.rmSync(targetDir, { recursive: true, force: true });
+      }
+      fs.renameSync(installedPath, targetDir);
+      fs.rmSync(tempDir, { recursive: true, force: true });
+
+      const result = await this.loadPlugin(targetDir);
       if (result.success && result.plugin) {
         await this.registerPlugin(result.plugin, 'npm');
       }
-
-      if (fs.existsSync(installDir)) {
-        fs.rmSync(installDir, { recursive: true, force: true });
-      }
       return result;
     } catch (error) {
-      if (fs.existsSync(installDir)) {
-        fs.rmSync(installDir, { recursive: true, force: true });
+      if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
       }
       return {
         success: false,

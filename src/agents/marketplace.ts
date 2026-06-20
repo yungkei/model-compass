@@ -2,38 +2,42 @@ import { program } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
+import { PluginManager } from '../plugins/plugin-manager';
 import { AgentAdapter, createAdapterContext } from './types';
 import { adapterManager } from './manager';
 
-export interface PluginManifest {
+export interface MarketPlugin {
   id: string;
   name: string;
   type: string;
   description: string;
   version: string;
-  author: string;
+  author: string | { name: string; email?: string };
   repository?: string;
   homepage?: string;
   tags: string[];
   license?: string;
-  
+
+  npm?: string;
+  config?: Record<string, unknown>;
+
   builtin?: boolean;
-  
+
   adapter?: {
     entry: string;
     type: 'builtin' | 'npm' | 'file';
   };
-  
+
   envVars?: Record<string, string>;
-  
+
   configFiles?: Array<{
     path: string;
     template: object;
     merge?: boolean;
   }>;
-  
+
   dependencies?: string[];
-  
+
   hooks?: {
     preInstall?: string;
     postInstall?: string;
@@ -46,7 +50,7 @@ export interface MarketplaceRegistry {
   name: string;
   description: string;
   version: string;
-  plugins: PluginManifest[];
+  plugins: MarketPlugin[];
 }
 
 const DEFAULT_MARKETPLACE_URL = 'https://raw.githubusercontent.com/yungkei/model-compass-plugins/main/registry.json';
@@ -293,6 +297,27 @@ function saveMarketplaceConfig(configs: MarketplaceConfig[]): void {
   fs.writeFileSync(configPath, JSON.stringify({ markets: configs }, null, 2));
 }
 
+function normalizePluginEntry(entry: any): MarketPlugin {
+  const plugin: MarketPlugin = {
+    id: entry.id,
+    name: entry.name,
+    type: entry.type || 'agent',
+    description: entry.description,
+    version: entry.version,
+    author: entry.author,
+    tags: entry.tags || [],
+    license: entry.license,
+    repository: entry.repository,
+    homepage: entry.homepage,
+  };
+  if (entry.npm) plugin.npm = entry.npm;
+  if (entry.config) plugin.config = entry.config;
+  if (entry.envVars) plugin.envVars = entry.envVars;
+  if (entry.configFiles) plugin.configFiles = entry.configFiles;
+  if (entry.dependencies) plugin.dependencies = entry.dependencies;
+  return plugin;
+}
+
 async function fetchRemoteRegistry(url: string): Promise<MarketplaceRegistry | null> {
   try {
     console.log(`📡 Fetching remote plugin registry: ${url}`);
@@ -300,13 +325,20 @@ async function fetchRemoteRegistry(url: string): Promise<MarketplaceRegistry | n
     const data = response.data;
     // Support model-compass-plugins format: { registry: [{ name, plugins }] }
     if (data.registry && Array.isArray(data.registry)) {
-      const allPlugins: PluginManifest[] = [];
+      const allPlugins: MarketPlugin[] = [];
       for (const category of data.registry) {
-        if (category.plugins) allPlugins.push(...category.plugins);
+        if (category.plugins) {
+          for (const entry of category.plugins) {
+            allPlugins.push(normalizePluginEntry(entry));
+          }
+        }
       }
       return { name: data.name, description: data.description, version: data.version, plugins: allPlugins };
     }
     // Support flat format: { plugins: [...] }
+    if (data.plugins && Array.isArray(data.plugins)) {
+      return { ...data, plugins: data.plugins.map(normalizePluginEntry) };
+    }
     return data as MarketplaceRegistry;
   } catch (err: any) {
     console.log(`⚠️  Failed to fetch remote registry: ${err.message}`);
@@ -314,9 +346,9 @@ async function fetchRemoteRegistry(url: string): Promise<MarketplaceRegistry | n
   }
 }
 
-function getAllPlugins(): PluginManifest[] {
+function getAllPlugins(): MarketPlugin[] {
   const configs = loadMarketplaceConfig();
-  const plugins: PluginManifest[] = [];
+  const plugins: MarketPlugin[] = [];
   
   for (const config of configs) {
     if (config.registry) {
@@ -327,7 +359,17 @@ function getAllPlugins(): PluginManifest[] {
   return plugins;
 }
 
-function pluginToAdapter(plugin: PluginManifest): AgentAdapter {
+function getAuthorName(author: string | { name: string; email?: string } | undefined): string {
+  if (!author) return 'Unknown';
+  return typeof author === 'string' ? author : author.name;
+}
+
+function getTypeLabel(type: string): string {
+  const labels: Record<string, string> = { provider: 'Provider', agent: 'Agent', router: 'Router' };
+  return labels[type] || 'Adapter';
+}
+
+function pluginToAdapter(plugin: MarketPlugin): AgentAdapter {
   return {
     id: plugin.id,
     name: plugin.name,
@@ -362,9 +404,11 @@ function listPlugins(query?: string): void {
 
     for (const plugin of filteredPlugins) {
       const isInstalled = installed.includes(plugin.id);
-      console.log(`  ${isInstalled ? '●' : '○'} ${plugin.id.padEnd(12)} ${plugin.name}`);
+      const typeLabel = getTypeLabel(plugin.type);
+      const authorName = getAuthorName(plugin.author);
+      console.log(`  ${isInstalled ? '●' : '○'} [${typeLabel}] ${plugin.id.padEnd(16)} ${plugin.name}`);
       console.log(`      ${plugin.description}`);
-      console.log(`      v${plugin.version} | ${plugin.author} | [${plugin.tags.join(', ')}]`);
+      console.log(`      v${plugin.version} | ${authorName} | [${plugin.tags.join(', ')}]`);
     }
     console.log('');
   }
@@ -390,10 +434,20 @@ function searchPlugins(keyword: string): void {
   
   for (const plugin of results) {
     const isInstalled = installed.includes(plugin.id);
-    console.log(`  ${isInstalled ? '●' : '○'} ${plugin.id.padEnd(12)} ${plugin.name}`);
+    const typeLabel = getTypeLabel(plugin.type);
+    console.log(`  ${isInstalled ? '●' : '○'} [${typeLabel}] ${plugin.id.padEnd(16)} ${plugin.name}`);
     console.log(`      ${plugin.description}`);
     console.log(`      v${plugin.version} | ${plugin.tags.join(', ')}\n`);
   }
+}
+
+function getPluginManager(): PluginManager {
+  const configPath = path.join(
+    process.env.MC_HOME || process.env.HOME || process.env.USERPROFILE || '.',
+    '.model-compass'
+  );
+  const pluginDir = path.join(configPath, 'plugins');
+  return new PluginManager(pluginDir);
 }
 
 async function installFromMarket(id: string): Promise<void> {
@@ -409,26 +463,44 @@ async function installFromMarket(id: string): Promise<void> {
     return;
   }
 
-  if (adapterManager.isInstalled(id)) {
-    console.log(`⚠️  Plugin ${plugin.name} is already installed`);
-    return;
-  }
+  const authorName = getAuthorName(plugin.author);
 
   console.log(`📦 Installing ${plugin.name}...\n`);
   console.log(`   ${plugin.description}\n`);
+  console.log(`   Type: ${getTypeLabel(plugin.type)}`);
   console.log(`   Version: ${plugin.version}`);
-  console.log(`   Author: ${plugin.author}`);
+  console.log(`   Author: ${authorName}`);
   console.log(`   Tags: ${plugin.tags.join(', ')}`);
 
   if (plugin.dependencies && plugin.dependencies.length > 0) {
     console.log(`\n   Dependencies: ${plugin.dependencies.join(', ')}`);
   }
 
+  // Provider and Router plugins: install via npm
+  if ((plugin.type === 'provider' || plugin.type === 'router') && plugin.npm) {
+    if (adapterManager.isInstalled(id)) {
+      console.log(`⚠️  ${plugin.name} is already installed`);
+      return;
+    }
+
+    const pm = getPluginManager();
+    const result = await pm.installFromNpm(plugin.npm);
+    if (result.success) {
+      console.log(`\n✅ ${plugin.name} installed!`);
+    }
+    return;
+  }
+
+  // Agent/Adapter plugins: install via adapter manager
+  if (adapterManager.isInstalled(id)) {
+    console.log(`⚠️  ${plugin.name} is already installed`);
+    return;
+  }
+
   const adapter = pluginToAdapter(plugin);
   await adapterManager.install(id, adapter);
 
   console.log(`\n✅ ${plugin.name} installed!`);
-  console.log(`   Use 'mc code default ${id}' to set as default`);
 }
 
 async function addMarketplace(url: string): Promise<void> {

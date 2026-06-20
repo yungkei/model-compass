@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import type { PluginManifest, MarketplaceRegistry } from './marketplace';
+import type { MarketPlugin, MarketplaceRegistry } from './marketplace';
 
-describe('PluginManifest', () => {
+describe('MarketPlugin', () => {
   it('should have required fields', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'claude',
       name: 'Claude Code',
       type: 'claude-code',
@@ -22,7 +22,7 @@ describe('PluginManifest', () => {
   });
 
   it('should support builtin flag', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'claude',
       name: 'Claude Code',
       type: 'claude-code',
@@ -37,7 +37,7 @@ describe('PluginManifest', () => {
   });
 
   it('should support envVars', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'claude',
       name: 'Claude Code',
       type: 'claude-code',
@@ -55,7 +55,7 @@ describe('PluginManifest', () => {
   });
 
   it('should support configFiles with merge option', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'claude',
       name: 'Claude Code',
       type: 'claude-code',
@@ -76,7 +76,7 @@ describe('PluginManifest', () => {
   });
 
   it('should support adapter entry for complex plugins', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'custom',
       name: 'Custom',
       type: 'custom',
@@ -95,7 +95,7 @@ describe('PluginManifest', () => {
   });
 
   it('should support dependencies', () => {
-    const plugin: PluginManifest = {
+    const plugin: MarketPlugin = {
       id: 'custom',
       name: 'Custom',
       type: 'custom',

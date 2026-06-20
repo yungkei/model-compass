@@ -18,8 +18,8 @@ function listProviderPlugins(): void {
   console.log('\nProvider Plugins:\n');
   if (plugins.length === 0) {
     console.log('  No provider plugins installed');
-    console.log('  Install from npm:  mc plugin install @model-compass/openai-provider');
-    console.log('  Install from GitHub: mc plugin install-github yungkei/model-compass-openai-provider\n');
+    console.log('  Install from npm:  mc plugin-provider install @yungkei/model-compass-openai-provider');
+    console.log('  Install from GitHub: mc plugin-provider install-github yungkei/model-compass-openai-provider\n');
     return;
   }
 
