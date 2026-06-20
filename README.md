@@ -262,9 +262,15 @@ If the model value contains a comma (`openrouter,gpt-4o`), the first part is the
 
 ## Claude Code Integration
 
+> **Note:** `mc code` is a pure launcher — it spawns the agent process but does **not** install any plugins. To write config files for Claude Code (or other agents), run `mc plugin install <id>` first.
+
 ### Method 1: `mc code` (recommended)
 
 ```bash
+# Optional: write config files first
+mc plugin install claude
+
+# Launch Claude Code
 mc code
 ```
 
