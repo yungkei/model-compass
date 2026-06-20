@@ -32,10 +32,13 @@ program
 import { addCommand as addCodeCommands } from './agent-code';
 import { addPluginCommands } from './plugin';
 import { addAdapterCommands } from '../agents/adapter-commands';
+import { addInitCommand } from './init';
+import { adapterManager } from '../agents/manager';
 
 addCodeCommands();
 addPluginCommands();
 addAdapterCommands();
+addInitCommand();
 
 program
   .command('start')
@@ -56,6 +59,12 @@ program
 
     providerManager.initialize();
     startServer();
+
+    if (adapterManager.getInstalled().length === 0) {
+      console.log('');
+      console.log('💡 Tip: Run \'mc plugin market list\' to browse installable plugins');
+      console.log('   Or:  \'mc init --quick\' to install commonly used plugins');
+    }
   });
 
 program

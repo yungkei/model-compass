@@ -103,7 +103,22 @@ cp config.example.json ~/.model-compass/config.json
 }
 ```
 
-### 3. Send a request
+### 3. Install plugins (optional)
+
+```bash
+# Quick setup — install commonly used integrations
+mc init --quick
+
+# Or browse available plugins
+mc plugin market list
+
+# Install specific plugins
+mc plugin install claude
+mc plugin install cursor
+mc plugin install opencode
+```
+
+### 4. Send a request
 
 ```bash
 curl http://localhost:8765/v1/chat/completions \
@@ -151,6 +166,7 @@ Commands:
   code       Start agent or manage agents
   plugin     Manage plugins (marketplace, npm, GitHub, agent adapters)
   adapter    Manage Agent adapters (built-in + custom)
+  init       Initialize with commonly used plugins
 ```
 
 ### `mc start`
@@ -192,6 +208,14 @@ Commands:
   market remove <name>                 Remove custom marketplace
   market refresh                       Refresh remote registries
   market config                        Show marketplace configuration
+```
+
+### `mc init`
+
+```
+Options:
+  --quick     Install commonly used plugins (claude, opencode, cursor)
+  --list      List all available plugins for setup
 ```
 
 ### `mc adapter`
