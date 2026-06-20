@@ -49,26 +49,40 @@ Model Compass is a lightweight, self-hosted API gateway that sits between your L
 ## Installation
 
 ```bash
-# Global install
+# Global install (recommended)
 npm install -g @yungkei/model-compass
 
-# Or clone and run locally
+# Or clone and build locally
 git clone https://github.com/yungkei/model-compass.git
 cd model-compass
 npm install
-npm run dev
+npm run build
 ```
 
 ## Quick Start
 
-### 1. Create config
+### 1. Start the server
+
+```bash
+mc start
+```
+
+Open [http://localhost:8765](http://localhost:8765) to access the **management dashboard**, where you can add providers, configure routes, and monitor health — all from the browser.
+
+### 2. Add a provider (via dashboard)
+
+In the dashboard, click **Add Provider** and fill in:
+- **Provider Name** — e.g. `openrouter`
+- **API Base URL** — e.g. `https://openrouter.ai/api/v1`
+- **API Key** — your provider key
+- **Models** — comma-separated model IDs
+
+Or create a config file manually:
 
 ```bash
 mkdir -p ~/.model-compass
 cp config.example.json ~/.model-compass/config.json
 ```
-
-Edit to add at least one provider:
 
 ```json
 {
@@ -88,14 +102,6 @@ Edit to add at least one provider:
   "connectionMode": "manual"
 }
 ```
-
-### 2. Start the server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:8765](http://localhost:8765).
 
 ### 3. Send a request
 
