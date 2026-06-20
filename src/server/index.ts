@@ -23,12 +23,13 @@ app.use(express.json({ limit: '10mb' }));
 
 const uiPath = path.join(__dirname, '../../public');
 if (fs.existsSync(uiPath)) {
-  app.use(express.static(uiPath));
+  // Serve index.html with version injection, all other static files normally
   app.get('/', (_req: Request, res: Response) => {
     let html = fs.readFileSync(path.join(uiPath, 'index.html'), 'utf-8');
     html = html.replace(/v\d+\.\d+\.\d+/g, `v${appVersion}`);
     res.type('html').send(html);
   });
+  app.use(express.static(uiPath));
 }
 
 app.use((_req: Request, _res: Response, next: NextFunction) => next());
