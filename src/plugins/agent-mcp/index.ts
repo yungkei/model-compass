@@ -52,7 +52,7 @@ export const plugin: AgentPlugin = {
     id: 'agent-mcp-tools',
     name: 'MCP Model Tools',
     version: '1.0.0',
-    description: '提供模型切换和管理功能的MCP工具集',
+    description: 'MCP tool set for model switching and management',
     categories: ['mcp', 'model-management'],
     tags: ['mcp', 'model-switch', 'agent-tools']
   },
@@ -85,7 +85,7 @@ export function getModelList(filter: 'all' | 'auto' | 'manual' = 'all'): string[
   
   // Auto mode
   if (filter === 'all' || filter === 'auto') {
-    list.push('mc/auto - 自动调度模式（智能选择最佳模型）');
+    list.push('mc/auto - Auto routing mode (intelligently selects best model)');
   }
   
   // Manual models from providers
@@ -105,7 +105,7 @@ export function getModelList(filter: 'all' | 'auto' | 'manual' = 'all'): string[
  */
 export function switchModel(model: string, providerHint?: string): { success: boolean; message: string } {
   if (!model) {
-    return { success: false, message: '请指定模型ID。例如: mc/auto, anthropic/claude-3.5-sonnet' };
+    return { success: false, message: 'Please specify a model ID. e.g. mc/auto, anthropic/claude-3.5-sonnet' };
   }
   
   const config = getConfig();
@@ -127,7 +127,7 @@ export function switchModel(model: string, providerHint?: string): { success: bo
   if (!isValid) {
     return { 
       success: false, 
-      message: `模型 '${model}' 未在配置中找到。请先运行 mc_model_list 查看可用模型。` 
+      message: `Model '${model}' not found in configuration. Run mc_model_list to see available models.` 
     };
   }
   
@@ -148,7 +148,7 @@ export function switchModel(model: string, providerHint?: string): { success: bo
   
   return { 
     success: true, 
-    message: `✅ 已切换模型: ${display}\n🔄 当前模式: ${model === 'mc/auto' ? '自动调度' : '手动指定'}\n📋 最近使用的模型: ${ctx.history?.join(', ') || '无'}`
+    message: `✅ Switched to model: ${display}\n🔄 Mode: ${model === 'mc/auto' ? 'Auto routing' : 'Manual'}\n📋 Recent models: ${ctx.history?.join(', ') || 'None'}`
   };
 }
 
@@ -158,7 +158,7 @@ export function switchModel(model: string, providerHint?: string): { success: bo
 export function getCurrentModel(): { currentModel: string; switchedAt: string | null; history: string[] } {
   const ctx = loadModelContext();
   return {
-    currentModel: ctx.currentModel || 'mc/auto (默认)',
+    currentModel: ctx.currentModel || 'mc/auto (default)',
     switchedAt: ctx.switchedAt || null,
     history: ctx.history || []
   };

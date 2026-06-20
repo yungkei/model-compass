@@ -118,7 +118,7 @@ export function switchModel(model: string): { success: boolean; message: string 
   if (!isValid) {
     return { 
       success: false, 
-      message: `模型 '${model}' 未在配置中找到` 
+      message: `Model '${model}' not found in configuration` 
     };
   }
   
@@ -135,7 +135,7 @@ export function switchModel(model: string): { success: boolean; message: string 
   
   return { 
     success: true, 
-    message: `已切换模型: ${model}`
+    message: `Switched to model: ${model}`
   };
 }
 
@@ -248,7 +248,7 @@ export const plugin: AgentPlugin = {
     id: 'agent-mc-model',
     name: 'MC Model Switcher',
     version: '1.0.0',
-    description: '为各个 Agent 提供 /mc-model 命令支持',
+    description: 'Provides /mc-model command support for all agents',
     categories: ['agent-tools', 'model-management'],
     tags: ['model-switch', 'cli-commands']
   },

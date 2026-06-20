@@ -3,7 +3,7 @@ import { loadConfig, getConfig } from '../config';
 import { PluginManager, pluginManager as defaultPluginManager } from '../plugins/plugin-manager';
 import { PluginType } from '../plugins/types';
 
-function getPluginManager(): PluginManager {
+export function getProviderPluginManager(): PluginManager {
   loadConfig();
   const config = getConfig();
   const pluginDir = config.plugins?.pluginDir;
@@ -11,15 +11,15 @@ function getPluginManager(): PluginManager {
   return defaultPluginManager;
 }
 
-function listProviderPlugins(): void {
-  const pm = getPluginManager();
+export function listProviderPlugins(): void {
+  const pm = getProviderPluginManager();
   const plugins = pm.getPluginsByType(PluginType.PROVIDER);
 
   console.log('\nProvider Plugins:\n');
   if (plugins.length === 0) {
     console.log('  No provider plugins installed');
-    console.log('  Install from npm:  mc plugin-provider install @yungkei/model-compass-openai-provider');
-    console.log('  Install from GitHub: mc plugin-provider install-github yungkei/model-compass-openai-provider\n');
+    console.log('  Install from npm:  mc plugin install-npm @yungkei/model-compass-openai-provider');
+    console.log('  Install from GitHub: mc plugin install-github yungkei/model-compass-openai-provider\n');
     return;
   }
 
@@ -33,8 +33,8 @@ function listProviderPlugins(): void {
   console.log('');
 }
 
-function listAllPlugins(): void {
-  const pm = getPluginManager();
+export function listAllPlugins(): void {
+  const pm = getProviderPluginManager();
   const all = pm.listPlugins();
 
   console.log('\nAll Plugins:\n');
@@ -55,8 +55,8 @@ function listAllPlugins(): void {
   console.log('');
 }
 
-async function installNpmPlugin(packageName: string, version?: string): Promise<void> {
-  const pm = getPluginManager();
+export async function installNpmPlugin(packageName: string, version?: string): Promise<void> {
+  const pm = getProviderPluginManager();
   console.log(`Installing provider plugin: ${packageName}${version ? `@${version}` : ''}...`);
   const result = await pm.installFromNpm(packageName, version);
   if (result.success) {
@@ -66,8 +66,8 @@ async function installNpmPlugin(packageName: string, version?: string): Promise<
   }
 }
 
-async function installGitHubPlugin(repo: string, ref?: string): Promise<void> {
-  const pm = getPluginManager();
+export async function installGitHubPlugin(repo: string, ref?: string): Promise<void> {
+  const pm = getProviderPluginManager();
   console.log(`Installing from GitHub: ${repo}${ref ? `#${ref}` : ''}...`);
   const result = await pm.installFromGitHub(repo, ref);
   if (result.success) {
@@ -77,8 +77,8 @@ async function installGitHubPlugin(repo: string, ref?: string): Promise<void> {
   }
 }
 
-async function uninstallPlugin(id: string): Promise<void> {
-  const pm = getPluginManager();
+export async function uninstallPlugin(id: string): Promise<void> {
+  const pm = getProviderPluginManager();
   const success = await pm.unregisterPlugin(id);
   if (success) {
     console.log(`✅ Uninstalled: ${id}`);
@@ -87,8 +87,8 @@ async function uninstallPlugin(id: string): Promise<void> {
   }
 }
 
-async function loadLocalPlugin(pluginPath: string): Promise<void> {
-  const pm = getPluginManager();
+export async function loadLocalPlugin(pluginPath: string): Promise<void> {
+  const pm = getProviderPluginManager();
   console.log(`Loading plugin from: ${pluginPath}...`);
   const result = await pm.loadPlugin(pluginPath);
   if (result.success && result.plugin) {
@@ -138,7 +138,7 @@ export function addProviderPluginCommands(): void {
     .command('reload')
     .description('Reload all plugins from plugin directory')
     .action(async () => {
-      const pm = getPluginManager();
+      const pm = getProviderPluginManager();
       const all = pm.listPlugins();
       for (const p of all) {
         await pm.unregisterPlugin(p.metadata.id);

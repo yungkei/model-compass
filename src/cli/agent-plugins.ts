@@ -16,7 +16,7 @@ export interface PluginConfig {
   }>;
 }
 
-const AGENT_PLUGINS: Record<string, PluginConfig> = {
+export const AGENT_PLUGINS: Record<string, PluginConfig> = {
   claude: {
     name: 'Claude Code',
     type: 'claude-code',
@@ -103,12 +103,12 @@ const AGENT_PLUGINS: Record<string, PluginConfig> = {
   }
 };
 
-function getPluginPath(): string {
+export function getPluginPath(): string {
   const basePath = process.env.MC_HOME || path.join(process.env.HOME || process.env.USERPROFILE || '.', '.model-compass');
   return path.join(basePath, 'plugins.json');
 }
 
-function loadPlugins(): Record<string, boolean> {
+export function loadPlugins(): Record<string, boolean> {
   const pluginPath = getPluginPath();
   try {
     if (fs.existsSync(pluginPath)) {
@@ -118,7 +118,7 @@ function loadPlugins(): Record<string, boolean> {
   return {};
 }
 
-function savePlugins(plugins: Record<string, boolean>): void {
+export function savePlugins(plugins: Record<string, boolean>): void {
   const pluginPath = getPluginPath();
   const dir = path.dirname(pluginPath);
   if (!fs.existsSync(dir)) {
@@ -127,7 +127,7 @@ function savePlugins(plugins: Record<string, boolean>): void {
   fs.writeFileSync(pluginPath, JSON.stringify(plugins, null, 2));
 }
 
-function expandPath(filePath: string): string {
+export function expandPath(filePath: string): string {
   if (filePath.startsWith('~/') || filePath.startsWith('~\\')) {
     const home = process.env.HOME || process.env.USERPROFILE || '.';
     return path.join(home, filePath.slice(2));
@@ -135,7 +135,7 @@ function expandPath(filePath: string): string {
   return filePath;
 }
 
-function installPlugin(agentName: string): void {
+export function installPlugin(agentName: string): void {
   const plugin = AGENT_PLUGINS[agentName];
   if (!plugin) {
     console.error(`Unknown agent: ${agentName}`);
@@ -192,7 +192,7 @@ function installPlugin(agentName: string): void {
   console.log(`   Description: ${plugin.description}`);
 }
 
-function uninstallPlugin(agentName: string): void {
+export function uninstallPlugin(agentName: string): void {
   const plugin = AGENT_PLUGINS[agentName];
   if (!plugin) {
     console.error(`Unknown agent: ${agentName}`);
@@ -230,7 +230,7 @@ function uninstallPlugin(agentName: string): void {
   console.log(`${plugin.name} plugin uninstalled`);
 }
 
-function listPlugins(): void {
+export function listPlugins(): void {
   const installed = loadPlugins();
 
   console.log('\nAgent Adapter Plugins:\n');

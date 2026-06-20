@@ -143,14 +143,14 @@ API keys support `${ENV_VAR}` syntax — for example `"${OPENROUTER_API_KEY}"` r
 Usage: mc <command> [options]
 
 Commands:
-  start      Start the server
-  model      List configured models
+  start      Start Model Compass service
+  model      Manage model list
   provider   Manage providers (list, status, add, remove)
   route      View or set routes
   config     View/edit configuration
-  code       Launch Claude Code or manage agents
-  plugin     Manage agent plugins
-  market     Marketplace plugin management
+  code       Start agent or manage agents
+  plugin     Manage plugins (marketplace, npm, GitHub, agent adapters)
+  adapter    Manage Agent adapters (built-in + custom)
 ```
 
 ### `mc start`
@@ -174,15 +174,38 @@ mc code sessions           List all sessions
 mc code context            Show global context
 ```
 
-### `mc market`
+### `mc plugin`
 
 ```
 Commands:
-  list [-s, --search <keyword>]   List marketplace plugins
-  install <id>                    Install plugin from marketplace
-  add <url>                       Add custom marketplace
-  remove <name>                   Remove custom marketplace
-  refresh                         Refresh remote registries
+  install <id>                         Install from marketplace or npm
+  install-npm <package> [version]      Install directly from npm
+  install-github <repo> [ref]          Install from GitHub
+  install-agent <name>                 Install agent adapter (claude, cursor...)
+  list                                 List all installed plugins
+  list-agents                          List agent adapter plugins
+  search <keyword>                     Search marketplace
+  uninstall <id>                       Uninstall a plugin
+  reload                               Reload all plugins from disk
+  market list [-s <keyword>]           List marketplace plugins
+  market add <url>                     Add custom marketplace
+  market remove <name>                 Remove custom marketplace
+  market refresh                       Refresh remote registries
+  market config                        Show marketplace configuration
+```
+
+### `mc adapter`
+
+```
+Commands:
+  list                   List all available adapters
+  installed              Show installed adapters
+  install <id>           Install adapter
+  uninstall <id>         Uninstall adapter
+  reload                 Reload custom adapters
+  create <id>            Create custom adapter template
+  remove <id>            Delete custom adapter
+  dev                    Show custom adapter dev guide
 ```
 
 ## API Overview

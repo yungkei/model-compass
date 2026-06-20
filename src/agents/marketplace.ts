@@ -64,18 +64,18 @@ interface MarketplaceConfig {
 
 const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
   name: 'Model Compass Official',
-  description: '官方插件市场 - 包含所有官方支持的适配器',
+  description: 'Official plugin marketplace - all officially supported adapters',
   url: DEFAULT_MARKETPLACE_URL,
   registry: {
     name: 'Model Compass Official',
-    description: '官方维护的 Agent 适配器',
+    description: 'Officially maintained agent adapters',
     version: '1.0.0',
     plugins: [
       {
         id: 'claude',
         name: 'Claude Code',
         type: 'claude-code',
-        description: 'Anthropic Claude Code 适配器 - 自动配置 ANTHROPIC_BASE_URL 和 API Key',
+        description: 'Anthropic Claude Code adapter - auto-configures ANTHROPIC_BASE_URL and API Key',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['claude', 'anthropic', 'official'],
@@ -101,7 +101,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'opencode',
         name: 'OpenCode',
         type: 'opencode',
-        description: 'OpenCode 适配器 - 自动生成 Provider 配置',
+        description: 'OpenCode adapter - auto-generates Provider configuration',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['opencode', 'official'],
@@ -130,7 +130,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'cursor',
         name: 'Cursor',
         type: 'cursor',
-        description: 'Cursor IDE 适配器 - 配置 MCP 路由服务器',
+        description: 'Cursor IDE adapter - configures MCP routing server',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['cursor', 'mcp', 'official'],
@@ -155,7 +155,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'windsurf',
         name: 'Windsurf',
         type: 'windsurf',
-        description: 'Windsurf (Codeium) 适配器 - 配置 MCP 路由服务器',
+        description: 'Windsurf (Codeium) adapter - configures MCP routing server',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['windsurf', 'codeium', 'mcp', 'official'],
@@ -179,7 +179,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'jan',
         name: 'Jan',
         type: 'local',
-        description: 'Jan AI 适配器 - 本地大模型运行框架',
+        description: 'Jan AI adapter - local LLM runtime framework',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['jan', 'local', 'ollama'],
@@ -201,7 +201,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'lmstudio',
         name: 'LM Studio',
         type: 'local',
-        description: 'LM Studio 适配器 - 本地大模型管理工具',
+        description: 'LM Studio adapter - local LLM management tool',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['lmstudio', 'local', 'ollama'],
@@ -223,7 +223,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'continue',
         name: 'Continue',
         type: 'vscode',
-        description: 'Continue (VSCode 插件) 适配器 - AI 代码助手',
+        description: 'Continue (VSCode extension) adapter - AI coding assistant',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['continue', 'vscode', 'openai'],
@@ -249,7 +249,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'zed',
         name: 'Zed AI',
         type: 'zed',
-        description: 'Zed 编辑器 AI 适配器',
+        description: 'Zed editor AI adapter',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['zed', 'editor', 'openai'],
@@ -346,7 +346,7 @@ async function fetchRemoteRegistry(url: string): Promise<MarketplaceRegistry | n
   }
 }
 
-function getAllPlugins(): MarketPlugin[] {
+export function getAllPlugins(): MarketPlugin[] {
   const configs = loadMarketplaceConfig();
   const plugins: MarketPlugin[] = [];
   
@@ -359,12 +359,12 @@ function getAllPlugins(): MarketPlugin[] {
   return plugins;
 }
 
-function getAuthorName(author: string | { name: string; email?: string } | undefined): string {
+export function getAuthorName(author: string | { name: string; email?: string } | undefined): string {
   if (!author) return 'Unknown';
   return typeof author === 'string' ? author : author.name;
 }
 
-function getTypeLabel(type: string): string {
+export function getTypeLabel(type: string): string {
   const labels: Record<string, string> = { provider: 'Provider', agent: 'Agent', router: 'Router' };
   return labels[type] || 'Adapter';
 }
@@ -381,7 +381,7 @@ function pluginToAdapter(plugin: MarketPlugin): AgentAdapter {
   };
 }
 
-function listPlugins(query?: string): void {
+export function listPlugins(query?: string): void {
   const plugins = getAllPlugins();
   const installed = adapterManager.getInstalled();
 
@@ -414,7 +414,7 @@ function listPlugins(query?: string): void {
   }
 }
 
-function searchPlugins(keyword: string): void {
+export function searchPlugins(keyword: string): void {
   const plugins = getAllPlugins();
   const installed = adapterManager.getInstalled();
   
@@ -441,7 +441,7 @@ function searchPlugins(keyword: string): void {
   }
 }
 
-function getPluginManager(): PluginManager {
+export function getMarketPluginManager(): PluginManager {
   const configPath = path.join(
     process.env.MC_HOME || process.env.HOME || process.env.USERPROFILE || '.',
     '.model-compass'
@@ -450,7 +450,7 @@ function getPluginManager(): PluginManager {
   return new PluginManager(pluginDir);
 }
 
-async function installFromMarket(id: string): Promise<void> {
+export async function installFromMarket(id: string): Promise<void> {
   const plugins = getAllPlugins();
   const plugin = plugins.find(p => p.id === id);
 
@@ -483,7 +483,7 @@ async function installFromMarket(id: string): Promise<void> {
       return;
     }
 
-    const pm = getPluginManager();
+    const pm = getMarketPluginManager();
     const result = await pm.installFromNpm(plugin.npm);
     if (result.success) {
       console.log(`\n✅ ${plugin.name} installed!`);
@@ -503,7 +503,7 @@ async function installFromMarket(id: string): Promise<void> {
   console.log(`\n✅ ${plugin.name} installed!`);
 }
 
-async function addMarketplace(url: string): Promise<void> {
+export async function addMarketplace(url: string): Promise<void> {
   console.log(`\n📡 Adding marketplace: ${url}\n`);
 
   const registry = await fetchRemoteRegistry(url);
@@ -528,7 +528,7 @@ async function addMarketplace(url: string): Promise<void> {
   console.log('   Use "mc market list" to view plugins');
 }
 
-async function refreshMarketplace(): Promise<void> {
+export async function refreshMarketplace(): Promise<void> {
   const configs = loadMarketplaceConfig();
   
   for (const config of configs) {
@@ -546,7 +546,7 @@ async function refreshMarketplace(): Promise<void> {
   console.log('\n✅ Marketplace refresh complete');
 }
 
-function removeMarketplace(name: string): void {
+export function removeMarketplace(name: string): void {
   const configs = loadMarketplaceConfig();
   const filtered = configs.filter(c => c.name !== name && c.url !== DEFAULT_MARKETPLACE_URL);
   
@@ -559,7 +559,7 @@ function removeMarketplace(name: string): void {
   console.log(`✅ Marketplace removed: ${name}`);
 }
 
-function showMarketplaceConfig(): void {
+export function showMarketplaceConfig(): void {
   const configs = loadMarketplaceConfig();
   
   console.log('\n📦 Configured Marketplaces:\n');

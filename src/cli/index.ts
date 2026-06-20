@@ -19,7 +19,7 @@ console.log(
 );
 console.log('━'.repeat(60));
 console.log('Intelligent LLM Routing System');
-console.log('Version: 1.0.0');
+console.log('Version: 1.1.0');
 console.log('License: Apache-2.0');
 console.log('━'.repeat(60));
 console.log('');
@@ -30,16 +30,12 @@ program
   .version('1.0.0');
 
 import { addCommand as addCodeCommands } from './agent-code';
-import { addPluginCommands } from './agent-plugins';
+import { addPluginCommands } from './plugin';
 import { addAdapterCommands } from '../agents/adapter-commands';
-import { addMarketplaceCommands } from '../agents/marketplace';
-import { addProviderPluginCommands } from './provider-plugins';
 
 addCodeCommands();
 addPluginCommands();
 addAdapterCommands();
-addMarketplaceCommands();
-addProviderPluginCommands();
 
 program
   .command('start')
