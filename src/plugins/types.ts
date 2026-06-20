@@ -73,6 +73,7 @@ export interface ProviderPlugin extends BasePlugin {
 export interface AgentPlugin extends BasePlugin {
   readonly type: PluginType.AGENT;
   supportedTypes: string[];
+  configFiles?: Array<{ path: string; template: object; merge?: boolean }>;
   onActivate?(context: PluginContext): Promise<void> | void;
   onDeactivate?(context: PluginContext): Promise<void> | void;
   onInstall?(context: PluginContext): Promise<void> | void;
