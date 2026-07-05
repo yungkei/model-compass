@@ -1,6 +1,6 @@
 {
   "name": "@yungkei/model-compass",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Intelligent LLM routing system with multi-provider support, automatic failover, and runtime data source switching",
   "author": "yungkei <53671318+yungkei@users.noreply.github.com>",
   "license": "Apache-2.0",
