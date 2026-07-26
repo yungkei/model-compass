@@ -220,13 +220,11 @@ export async function switchAgent(agentType: string, options?: { session?: strin
 
   if (agentType === 'claude') {
     const resolved = resolveAgentEnv('mc');
-    process.env.ANTHROPIC_BASE_URL = resolved.ANTHROPIC_BASE_URL;
-    process.env.ANTHROPIC_API_KEY = resolved.ANTHROPIC_API_KEY;
-    process.env.ANTHROPIC_VERSION = resolved.ANTHROPIC_VERSION;
-    process.env.ANTHROPIC_MODEL = 'modelcompass';
-    process.env.MC_MODEL = 'mc';
+    // The MC wrapper needs these env vars for the spawned Claude process,
+    // but we avoid mutating the global process.env to keep native Claude config intact.
+    // The values are passed to the child process via its environment (see startAgent).
     console.log(`\nClaude environment configured:`);
-    console.log(`   MC_MODEL=mc, ANTHROPIC_BASE_URL=${process.env.ANTHROPIC_BASE_URL}`);
+    console.log(`   MC_MODEL=mc, ANTHROPIC_BASE_URL=${resolved.ANTHROPIC_BASE_URL}`);
     console.log('\nNow starting server...\n');
     await startServer();
   }
