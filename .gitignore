@@ -42,3 +42,4 @@ coverage/
 # User config and test data
 .model-compass/
 .test-model-compass/
+*.tgz
