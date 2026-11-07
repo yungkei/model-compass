@@ -11,6 +11,16 @@ export interface PluginManifest {
   author?: string;
 }
 
+/**
+ * Read a JSON file, tolerating a UTF-8 BOM.
+ * Some published packages ship a manifest with a BOM, which plain
+ * JSON.parse would reject.
+ */
+function readJsonFile(filePath: string): unknown {
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(raw.replace(/^\uFEFF/, ''));
+}
+
 export class PluginLoader {
   private pluginDir: string;
 
@@ -46,7 +56,7 @@ export class PluginLoader {
         return null;
       }
 
-      const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+      const manifest: PluginManifest = readJsonFile(manifestPath) as PluginManifest;
       const mainFile = path.join(pluginPath, manifest.main || 'index.js');
 
       if (!fs.existsSync(mainFile)) {

@@ -17,6 +17,14 @@ export interface PluginManifest {
   dependencies?: Record<string, string>;
   configFiles?: Array<{ path: string; template: object; merge?: boolean }>;
   envVars?: Record<string, string>;
+  /**
+   * Provider type names this plugin can serve.
+   *
+   * Lets a provider plugin be selected with a friendly name such as
+   * "cohere" in the providers config, instead of having to spell out the
+   * package id. The package id always keeps working as an alias.
+   */
+  providerTypes?: string[];
 }
 
 export enum PluginType {

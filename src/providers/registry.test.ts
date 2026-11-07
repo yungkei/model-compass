@@ -99,6 +99,63 @@ describe('AdapterRegistry', () => {
     registry.clear();
     expect(registry.getAllAdapters()).toHaveLength(0);
   });
+
+  describe('override priority', () => {
+    const makeAdapter = (name: string, type: string): ProviderAdapter => ({
+      metadata: { name, version: '1.0.0', description: name, providerTypes: [type] },
+      transformers: {
+        buildRequestBody: (req) => req,
+        transformResponse: (res) => res as any,
+        buildHeaders: () => ({})
+      },
+      isCompatible: (t) => t === type
+    });
+
+    it('should let a later registration take over a provider type', () => {
+      const builtin = makeAdapter('builtin', 'cohere');
+      const plugin = makeAdapter('plugin', 'cohere');
+
+      registry.register(builtin);
+      expect(registry.getAdapterByType('cohere')).toBe(builtin);
+
+      registry.register(plugin);
+      expect(registry.getAdapterByType('cohere')).toBe(plugin);
+    });
+
+    it('should keep the original priority when the same instance is re-registered', () => {
+      const builtin = makeAdapter('builtin', 'cohere');
+      const plugin = makeAdapter('plugin', 'cohere');
+
+      registry.register(builtin);
+      registry.register(plugin);
+      // Re-registering the built-in must not shadow the plugin.
+      registry.register(builtin);
+
+      expect(registry.getAdapterByType('cohere')).toBe(plugin);
+    });
+
+    it('should restore the built-in after the plugin is unregistered', () => {
+      const builtin = makeAdapter('builtin', 'cohere');
+      const plugin = makeAdapter('plugin', 'cohere');
+
+      registry.register(builtin);
+      registry.register(plugin);
+      registry.unregister('plugin');
+
+      expect(registry.getAdapterByType('cohere')).toBe(builtin);
+    });
+
+    it('should not affect adapters claiming different types', () => {
+      const a = makeAdapter('a', 'type-a');
+      const b = makeAdapter('b', 'type-b');
+
+      registry.register(a);
+      registry.register(b);
+
+      expect(registry.getAdapterByType('type-a')).toBe(a);
+      expect(registry.getAdapterByType('type-b')).toBe(b);
+    });
+  });
 });
 
 describe('ProviderAdapter Interface', () => {

@@ -49,9 +49,24 @@ export interface AdapterPlugin {
 export class AdapterRegistry {
   private adapters: Map<string, ProviderAdapter> = new Map();
   private plugins: Map<string, AdapterPlugin> = new Map();
+  /**
+   * Registration order per adapter. The most recently registered adapter wins
+   * when several of them claim the same provider type, which lets an
+   * installed plugin take over a built-in adapter.
+   */
+  private priority: Map<string, number> = new Map();
+  private counter = 0;
 
   register(adapter: ProviderAdapter): void {
+    // Re-registering the exact same instance keeps its original priority so
+    // that a repeated built-in registration cannot shadow a plugin that was
+    // registered later.
+    if (this.adapters.get(adapter.metadata.name) === adapter) {
+      return;
+    }
     this.adapters.set(adapter.metadata.name, adapter);
+    this.counter += 1;
+    this.priority.set(adapter.metadata.name, this.counter);
   }
 
   registerPlugin(plugin: AdapterPlugin): void {
@@ -62,6 +77,7 @@ export class AdapterRegistry {
   }
 
   unregister(name: string): boolean {
+    this.priority.delete(name);
     return this.adapters.delete(name);
   }
 
@@ -80,13 +96,27 @@ export class AdapterRegistry {
     return this.adapters.get(name);
   }
 
+  /**
+   * Find the adapter serving a provider type.
+   * When multiple adapters claim the same type, the most recently registered
+   * one wins - this is what allows an installed plugin to override a
+   * built-in adapter.
+   */
   getAdapterByType(providerType: string): ProviderAdapter | undefined {
+    if (!providerType) return undefined;
+
+    let match: ProviderAdapter | undefined;
+    let matchPriority = -1;
+
     for (const adapter of this.adapters.values()) {
-      if (adapter.isCompatible(providerType)) {
-        return adapter;
+      if (!adapter.isCompatible(providerType)) continue;
+      const p = this.priority.get(adapter.metadata.name) ?? 0;
+      if (p > matchPriority) {
+        matchPriority = p;
+        match = adapter;
       }
     }
-    return undefined;
+    return match;
   }
 
   hasAdapter(name: string): boolean {
@@ -108,6 +138,8 @@ export class AdapterRegistry {
   clear(): void {
     this.adapters.clear();
     this.plugins.clear();
+    this.priority.clear();
+    this.counter = 0;
   }
 }
 

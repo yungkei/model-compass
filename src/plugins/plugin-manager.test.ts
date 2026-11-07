@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, beforeAll } from 'vitest';
 import { PluginManager } from './plugin-manager';
 import { PluginType } from './types';
+import { adapterRegistry } from '../providers/registry';
 
 vi.mock('fs', () => ({
   existsSync: vi.fn(() => true),
@@ -190,6 +191,39 @@ describe('PluginManager', () => {
       const insts = manager.listInstallations();
       expect(insts).toHaveLength(1);
       expect(insts[0].source).toBe('npm');
+    });
+  });
+
+  describe('provider plugin registration', () => {
+    const makeProviderPlugin = (id: string, providerTypes?: string[]) => ({
+      type: PluginType.PROVIDER,
+      metadata: { id, name: id, version: '1.0.0', description: '', providerTypes },
+      createProvider: vi.fn()
+    } as any);
+
+    it('should register the plugin id as provider type by default', async () => {
+      await manager.registerPlugin(makeProviderPlugin('@scope/pkg-a'));
+      const adapter = adapterRegistry.getAdapter('@scope/pkg-a');
+      expect(adapter).toBeDefined();
+      expect(adapter!.metadata.providerTypes).toEqual(['@scope/pkg-a']);
+    });
+
+    it('should register friendly provider types when declared', async () => {
+      await manager.registerPlugin(makeProviderPlugin('@scope/pkg-b', ['cohere']));
+      const adapter = adapterRegistry.getAdapter('@scope/pkg-b');
+      expect(adapter!.metadata.providerTypes).toEqual(['cohere']);
+    });
+
+    it('should be selectable by its friendly provider type', async () => {
+      await manager.registerPlugin(makeProviderPlugin('@scope/pkg-c', ['mistral']));
+      const found = adapterRegistry.getAdapterByType('mistral');
+      expect(found?.metadata.name).toBe('@scope/pkg-c');
+    });
+
+    it('should keep the package id working as an alias', async () => {
+      await manager.registerPlugin(makeProviderPlugin('@scope/pkg-d', ['azure']));
+      expect(adapterRegistry.getAdapterByType('@scope/pkg-d')?.metadata.name).toBe('@scope/pkg-d');
+      expect(adapterRegistry.getAdapterByType('azure')?.metadata.name).toBe('@scope/pkg-d');
     });
   });
 });

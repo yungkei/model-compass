@@ -433,6 +433,21 @@ export async function startServer(force = false): Promise<void> {
   loadConfig();
   const config = getConfig();
   await pluginService.initialize().catch(err => console.error('Failed to initialize plugins:', err));
+
+  // Load file based adapter plugins (AdapterPlugin: { register, adapters }).
+  // Without this they would only be picked up by a manual /adapters/reload.
+  const adapterPluginDir = config.plugins?.pluginDir
+    || path.join(process.env.MC_HOME || process.env.HOME || process.env.USERPROFILE || '.', '.model-compass', 'plugins');
+  try {
+    const loader = new PluginLoader(adapterPluginDir);
+    const loaded = await loader.loadPlugins();
+    if (loaded.length > 0) {
+      console.log(`Loaded ${loaded.length} adapter plugin(s) from ${adapterPluginDir}`);
+    }
+  } catch (err) {
+    console.error('Failed to load adapter plugins:', err);
+  }
+
   providerManager.initialize();
   await providerManager.runHealthChecks();
   await new Promise<void>((resolve) => {

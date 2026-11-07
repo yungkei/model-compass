@@ -11,6 +11,16 @@ import { router } from '../core/router';
 
 import { Provider as ConfigProvider } from '../config';
 
+/**
+ * Read a JSON file, tolerating a UTF-8 BOM.
+ * Some published packages ship a manifest with a BOM, which plain
+ * JSON.parse would reject.
+ */
+function readJsonFile(filePath: string): unknown {
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(raw.replace(/^\uFEFF/, ''));
+}
+
 export class PluginManager {
   private plugins: Map<string, Plugin> = new Map();
   private installations: Map<string, PluginInstallation> = new Map();
@@ -65,7 +75,7 @@ export class PluginManager {
       if (!fs.existsSync(packagePath)) {
         return { success: false, error: 'Plugin manifest not found (package.json required)' };
       }
-      const manifest: PluginManifest = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+      const manifest: PluginManifest = readJsonFile(packagePath) as PluginManifest;
       const mainFile = path.join(pluginPath, manifest.main || 'index.js');
       if (!fs.existsSync(mainFile)) {
         return { success: false, error: `Plugin main file not found at ${mainFile}` };
@@ -79,6 +89,13 @@ export class PluginManager {
       }
 
       const plugin = pluginModule.plugin as Plugin;
+
+      // The package manifest may declare the provider types, which lets a
+      // plugin be selected with a friendly name without touching its code.
+      if (manifest.providerTypes?.length && !plugin.metadata.providerTypes?.length) {
+        plugin.metadata.providerTypes = manifest.providerTypes;
+      }
+
       const validation = this.validatePlugin(plugin, manifest);
       if (!validation.valid) {
         return { success: false, error: `Plugin validation failed: ${validation.errors?.join(', ')}` };
@@ -261,13 +278,19 @@ export class PluginManager {
   private async registerProviderPlugin(plugin: ProviderPlugin): Promise<void> {
     const pluginHooks: PluginRequestHooks | undefined = plugin.hooks;
 
+    // A plugin may declare friendly provider type names (e.g. "cohere").
+    // The package id always stays available as an alias.
+    const providerTypes = plugin.metadata.providerTypes?.length
+      ? plugin.metadata.providerTypes
+      : [plugin.metadata.id];
+
     const adapter: ProviderAdapter = {
       metadata: {
         name: plugin.metadata.id,
         version: plugin.metadata.version,
         description: plugin.metadata.description,
         author: plugin.metadata.author?.name,
-        providerTypes: [plugin.metadata.id]
+        providerTypes
       },
       transformers: {
         buildRequestBody: (req, provider) =>
@@ -340,7 +363,8 @@ export class PluginManager {
             `${plugin.metadata.id}.onInitialize`
           )
       },
-      isCompatible: (providerType) => providerType === plugin.metadata.id
+      isCompatible: (providerType) =>
+        providerTypes.includes(providerType) || providerType === plugin.metadata.id
     };
 
     adapterRegistry.register(adapter);
