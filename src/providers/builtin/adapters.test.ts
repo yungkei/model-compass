@@ -3,6 +3,12 @@ import { openaiAdapter } from './openai';
 import { anthropicAdapter } from './anthropic';
 import { geminiAdapter } from './gemini';
 import { ollamaAdapter } from './ollama';
+import { cohereAdapter } from './cohere';
+import { mistralAdapter } from './mistral';
+import { xaiAdapter } from './xai';
+import { azureAdapter } from './azure';
+import { bedrockAdapter } from './bedrock';
+import { alibabaAdapter } from './alibaba';
 import { BUILTIN_ADAPTERS } from './index';
 
 const request = {
@@ -207,14 +213,183 @@ describe('ollamaAdapter', () => {
   });
 });
 
+describe('cohereAdapter', () => {
+  it('should have correct metadata', () => {
+    expect(cohereAdapter.metadata.name).toBe('cohere');
+    expect(cohereAdapter.metadata.providerTypes).toEqual(['cohere']);
+  });
+
+  it('should convert system message to preamble', () => {
+    const req = {
+      ...request,
+      messages: [
+        { role: 'system' as const, content: 'Be helpful' },
+        { role: 'user' as const, content: 'Hello' }
+      ]
+    };
+    const body = cohereAdapter.transformers.buildRequestBody(req, { ...config, type: 'cohere' } as any) as any;
+    expect(body.preamble).toBe('Be helpful');
+    expect(body.message).toBe('Hello');
+    expect(body.chat_history).toHaveLength(0);
+  });
+
+  it('should put earlier messages into chat_history', () => {
+    const req = {
+      ...request,
+      messages: [
+        { role: 'user' as const, content: 'First' },
+        { role: 'assistant' as const, content: 'Second' },
+        { role: 'user' as const, content: 'Third' }
+      ]
+    };
+    const body = cohereAdapter.transformers.buildRequestBody(req, { ...config, type: 'cohere' } as any) as any;
+    expect(body.message).toBe('Third');
+    expect(body.chat_history).toHaveLength(2);
+    expect(body.chat_history[0]).toEqual({ role: 'user', message: 'First' });
+  });
+
+  it('should build endpoint', () => {
+    expect(cohereAdapter.transformers.buildEndpoint!(config as any, '/chat/completions')).toBe('/chat');
+  });
+
+  it('should transform response from Cohere format', () => {
+    const cohereResponse = {
+      text: 'Hi!',
+      generation_id: 'gen-1',
+      model: 'command-r',
+      meta: { tokens: { input_tokens: 7, output_tokens: 3 } }
+    };
+    const result = cohereAdapter.transformers.transformResponse(cohereResponse, config as any);
+    expect(result.choices[0].message.content).toBe('Hi!');
+    expect(result.id).toBe('gen-1');
+    expect(result.usage?.total_tokens).toBe(10);
+  });
+});
+
+describe('mistralAdapter', () => {
+  it('should have correct metadata', () => {
+    expect(mistralAdapter.metadata.name).toBe('mistral');
+    expect(mistralAdapter.metadata.providerTypes).toEqual(['mistral']);
+  });
+
+  it('should build an OpenAI compatible request body', () => {
+    const body = mistralAdapter.transformers.buildRequestBody(request, { ...config, type: 'mistral' } as any) as any;
+    expect(body.model).toBe('gpt-4');
+    expect(body.messages).toHaveLength(1);
+    expect(body.temperature).toBe(0.7);
+  });
+
+  it('should not be matched by the openai adapter', () => {
+    expect(openaiAdapter.isCompatible('mistral')).toBe(false);
+    expect(mistralAdapter.isCompatible('mistral')).toBe(true);
+  });
+});
+
+describe('xaiAdapter', () => {
+  it('should have correct metadata', () => {
+    expect(xaiAdapter.metadata.name).toBe('xai');
+    expect(xaiAdapter.metadata.providerTypes).toEqual(['xai']);
+  });
+
+  it('should build headers with bearer token', () => {
+    const headers = xaiAdapter.transformers.buildHeaders('xai-test', config as any);
+    expect(headers.Authorization).toBe('Bearer xai-test');
+  });
+});
+
+describe('azureAdapter', () => {
+  it('should have correct metadata', () => {
+    expect(azureAdapter.metadata.name).toBe('azure');
+    expect(azureAdapter.metadata.providerTypes).toEqual(['azure']);
+  });
+
+  it('should use the api-key header instead of bearer', () => {
+    const headers = azureAdapter.transformers.buildHeaders('azure-test', config as any);
+    expect(headers['api-key']).toBe('azure-test');
+    expect(headers.Authorization).toBeUndefined();
+  });
+
+  it('should omit the model from the body', () => {
+    const body = azureAdapter.transformers.buildRequestBody(request, { ...config, type: 'azure' } as any) as any;
+    expect(body.model).toBeUndefined();
+    expect(body.messages).toHaveLength(1);
+  });
+});
+
+describe('bedrockAdapter', () => {
+  it('should have correct metadata', () => {
+    expect(bedrockAdapter.metadata.name).toBe('bedrock');
+    expect(bedrockAdapter.metadata.providerTypes).toEqual(['bedrock']);
+  });
+
+  it('should use inferenceConfig', () => {
+    const body = bedrockAdapter.transformers.buildRequestBody(request, { ...config, type: 'bedrock' } as any) as any;
+    expect(body.inferenceConfig.temperature).toBe(0.7);
+    expect(body.inferenceConfig.maxTokens).toBe(100);
+  });
+
+  it('should build the converse endpoint', () => {
+    const cfg = { ...config, models: ['anthropic.claude-3-sonnet'] };
+    const ep = bedrockAdapter.transformers.buildEndpoint!(cfg as any, '');
+    expect(ep).toContain('/model/anthropic.claude-3-sonnet/converse');
+  });
+
+  it('should transform response from Bedrock format', () => {
+    const bedrockResponse = {
+      output: {
+        content: [{ text: 'Hello!' }],
+        stopReason: 'end_turn',
+        usage: { inputTokens: 5, outputTokens: 2 }
+      }
+    };
+    const result = bedrockAdapter.transformers.transformResponse(bedrockResponse, config as any);
+    expect(result.choices[0].message.content).toBe('Hello!');
+    expect(result.usage?.total_tokens).toBe(7);
+  });
+});
+
+describe('alibabaAdapter', () => {
+  it('should have correct metadata', () => {
+    expect(alibabaAdapter.metadata.name).toBe('alibaba');
+    expect(alibabaAdapter.metadata.providerTypes).toContain('alibaba');
+    expect(alibabaAdapter.metadata.providerTypes).toContain('dashscope');
+  });
+
+  it('should use the input/parameters layout', () => {
+    const body = alibabaAdapter.transformers.buildRequestBody(request, { ...config, type: 'alibaba' } as any) as any;
+    expect(body.input.messages).toHaveLength(1);
+    expect(body.parameters.temperature).toBe(0.7);
+    expect(body.parameters.max_tokens).toBe(100);
+  });
+
+  it('should transform response from DashScope format', () => {
+    const aliResponse = {
+      request_id: 'req-1',
+      model: 'qwen-max',
+      output: { text: 'Hi!' },
+      usage: { input_tokens: 4, output_tokens: 2 }
+    };
+    const result = alibabaAdapter.transformers.transformResponse(aliResponse, config as any);
+    expect(result.choices[0].message.content).toBe('Hi!');
+    expect(result.id).toBe('req-1');
+    expect(result.usage?.total_tokens).toBe(6);
+  });
+});
+
 describe('BUILTIN_ADAPTERS', () => {
-  it('should include all 4 adapters', () => {
-    expect(BUILTIN_ADAPTERS).toHaveLength(4);
+  it('should include all 10 adapters', () => {
+    expect(BUILTIN_ADAPTERS).toHaveLength(10);
     const names = BUILTIN_ADAPTERS.map(a => a.metadata.name);
     expect(names).toContain('openai');
     expect(names).toContain('anthropic');
     expect(names).toContain('gemini');
     expect(names).toContain('ollama');
+    expect(names).toContain('cohere');
+    expect(names).toContain('mistral');
+    expect(names).toContain('xai');
+    expect(names).toContain('azure');
+    expect(names).toContain('bedrock');
+    expect(names).toContain('alibaba');
   });
 
   it('each adapter should have required fields', () => {
@@ -226,6 +401,16 @@ describe('BUILTIN_ADAPTERS', () => {
       expect(typeof adapter.transformers.transformResponse).toBe('function');
       expect(typeof adapter.transformers.buildHeaders).toBe('function');
       expect(typeof adapter.isCompatible).toBe('function');
+    }
+  });
+
+  it('should not have overlapping provider types between adapters', () => {
+    const seen = new Map<string, string>();
+    for (const adapter of BUILTIN_ADAPTERS) {
+      for (const type of adapter.metadata.providerTypes) {
+        expect(seen.has(type)).toBe(false);
+        seen.set(type, adapter.metadata.name);
+      }
     }
   });
 });
