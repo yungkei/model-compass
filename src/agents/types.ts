@@ -7,6 +7,27 @@ export interface AgentAdapter {
 
   model?: string;
 
+  /**
+   * Environment variables injected into the child process spawned by
+   * `mc code <agent>`. These never leak into the parent process and never
+   * touch the target application's own configuration.
+   */
+  launchEnv?: (context: AdapterContext) => Record<string, string>;
+
+  /**
+   * Extra CLI arguments injected into the child process spawned by
+   * `mc code <agent>`.
+   */
+  launchArgs?: (context: AdapterContext) => string[];
+
+  /**
+   * Third-party configuration files for applications that can only be
+   * configured through a file (e.g. MCP based IDEs).
+   *
+   * IMPORTANT: these are only written when the user explicitly opts in with
+   * `mc adapter install <id> --global`. By default MC stores its own profile
+   * under ~/.model-compass and applies the routing at launch time only.
+   */
   configFiles?: Array<{
     path: string;
     template: object;
@@ -38,57 +59,23 @@ export const builtInAdapters: AgentAdapter[] = [
     id: 'claude',
     name: 'Claude Code',
     type: 'claude-code',
-    description: 'Claude Code adapter plugin - auto-config via MC proxy',
+    description: 'Claude Code adapter - routes via env vars, no config file is touched',
     version: '1.0.0',
-    model: 'mc',
-    configFiles: [
-      {
-        path: '~/.claude/settings.json',
-        template: {
-          env: {
-            ANTHROPIC_BASE_URL: '{env:MC_BASE_URL}',
-            ANTHROPIC_API_KEY: '{env:MC_API_KEY}',
-            MC_MODEL: 'mc'
-          }
-        }
-      }
-    ]
+    model: 'mc'
   },
   {
     id: 'opencode',
     name: 'OpenCode',
     type: 'opencode',
-    description: 'OpenCode adapter plugin - auto-generate Provider config',
+    description: 'OpenCode adapter - routes via OPENCODE_CONFIG_CONTENT, no config file is touched',
     version: '1.0.0',
-    configFiles: [
-      {
-        path: '~/.config/opencode/opencode.json',
-        template: {
-          $schema: 'https://opencode.ai/config.json',
-          provider: {
-            'model-compass': {
-              npm: '@ai-sdk/openai-compatible',
-              name: 'Model Compass Router',
-              options: {
-                baseURL: '{env:MC_BASE_URL}',
-                apiKey: '{env:MC_API_KEY}'
-              },
-              models: {
-                'mc': {
-                  name: 'Model Compass Router'
-                }
-              }
-            }
-          }
-        }
-      }
-    ]
+    model: 'mc'
   },
   {
     id: 'cursor',
     name: 'Cursor',
     type: 'cursor',
-    description: 'Cursor adapter plugin - configure MCP routing server',
+    description: 'Cursor adapter - MCP based, requires opt-in global MCP entry',
     version: '1.0.0',
     configFiles: [
       {
@@ -96,12 +83,35 @@ export const builtInAdapters: AgentAdapter[] = [
         template: {
           'model-compass': {
             command: 'node',
-            args: ['/path/to/mc/router-mcp.js'],
+            args: ['$MC_PATH/mcp-server.js'],
             env: {
-              MC_BASE_URL: '{env:MC_BASE_URL}'
+              MC_BASE_URL: 'http://localhost:8765/v1'
             }
           }
-        }
+        },
+        merge: true
+      }
+    ]
+  },
+  {
+    id: 'windsurf',
+    name: 'Windsurf',
+    type: 'windsurf',
+    description: 'Windsurf adapter - MCP based, requires opt-in global MCP entry',
+    version: '1.0.0',
+    configFiles: [
+      {
+        path: '~/.codeium/windsurf/mcp_config.json',
+        template: {
+          'model-compass': {
+            command: 'node',
+            args: ['$MC_PATH/mcp-server.js'],
+            env: {
+              MC_BASE_URL: 'http://localhost:8765/v1'
+            }
+          }
+        },
+        merge: true
       }
     ]
   }

@@ -2,9 +2,19 @@ import { program } from 'commander';
 import * as fs from 'fs';
 import * as path from 'path';
 import { adapterManager } from './manager';
+import {
+  createLaunchContext,
+  getInjectedEnv,
+  getLaunchStrategy,
+  maskEnv
+} from './launch';
 
 const TEMPLATE = `// Custom Agent Adapter Template
 // Place this file in ~/.model-compass/adapters/
+//
+// NOTE: 'configFiles' are only written when the user opts in with --global.
+// By default MC keeps its own profile under ~/.model-compass and applies the
+// routing only when the agent is launched through 'mc code <id>'.
 
 module.exports = {
   id: 'PLACEHOLDER_ID',
@@ -12,12 +22,14 @@ module.exports = {
   type: 'custom',
   description: 'Custom Agent Adapter',
   version: '1.0.0',
-  
-  envVars: {
+
+  // Environment variables injected into the spawned child process only.
+  launchEnv: (ctx) => ({
     API_URL: 'http://localhost:8765/v1',
     API_KEY: 'sk-dummy'
-  },
+  }),
 
+  // Optional: global config files (only applied with --global).
   configFiles: [
     {
       path: '~/.myagent/config.json',
@@ -108,12 +120,94 @@ function showInstalled(): void {
   } else {
     for (const id of installed) {
       const adapter = all.find(a => a.id === id);
+      const profile = adapterManager.getProfile(id);
+      const globalMark = profile?.globalApplied ? '🌐 global config written' : '🔒 isolated';
       if (adapter) {
-        console.log(`  ● ${adapter.id.padEnd(12)} - ${adapter.name}`);
+        console.log(`  ● ${adapter.id.padEnd(12)} - ${adapter.name}  [${globalMark}]`);
       }
     }
   }
   console.log('');
+}
+
+/**
+ * Print the configuration snippet so the user can apply it manually.
+ * Nothing is written to disk.
+ */
+function exportAdapter(id: string): void {
+  const adapter = adapterManager.getAdapter(id);
+  if (!adapter) {
+    console.error(`❌ Adapter not found: ${id}`);
+    console.log('\nAvailable adapters:');
+    for (const a of adapterManager.getAllAdapters()) {
+      console.log(`  - ${a.id} (${a.name})`);
+    }
+    return;
+  }
+
+  const strategy = getLaunchStrategy(adapter.type);
+  const launchCtx = createLaunchContext();
+
+  console.log(`\n📤 ${adapter.name} - manual configuration\n`);
+
+  if (adapter.configFiles && adapter.configFiles.length > 0) {
+    console.log('Add the following to your application configuration:\n');
+    for (const cf of adapter.configFiles) {
+      const fullPath = cf.path.startsWith('~')
+        ? cf.path
+        : cf.path;
+      console.log(`  File: ${fullPath}`);
+      console.log(JSON.stringify(cf.template, null, 2).split('\n').map(l => `  ${l}`).join('\n'));
+      console.log('');
+    }
+  }
+
+  if (strategy.mode === 'env') {
+    const injected = getInjectedEnv(adapter.type, launchCtx);
+    console.log('Or simply launch it through MC (recommended):');
+    console.log(`  mc code ${id}\n`);
+    console.log('Environment variables MC injects into the child process:');
+    for (const [key, value] of Object.entries(maskEnv(injected))) {
+      console.log(`  ${key}=${value}`);
+    }
+    console.log('');
+  }
+
+  console.log('To let MC write the configuration file for you:');
+  console.log(`  mc adapter install ${id} --global`);
+  console.log('');
+}
+
+/** Show how each installed adapter is routed. */
+function showStatus(): void {
+  const installed = adapterManager.getInstalled();
+
+  console.log('\n🧭 Adapter Status:\n');
+
+  if (installed.length === 0) {
+    console.log('  No adapters installed.');
+    console.log('  You can still launch any agent with: mc code <agent>\n');
+    return;
+  }
+
+  for (const id of installed) {
+    const adapter = adapterManager.getAdapter(id);
+    const profile = adapterManager.getProfile(id);
+    const type = profile?.type || adapter?.type || 'unknown';
+    const strategy = getLaunchStrategy(type);
+
+    console.log(`  ${id}`);
+    console.log(`     type:    ${type}`);
+    console.log(`     mode:    ${strategy.mode}`);
+    console.log(`     global:  ${profile?.globalApplied ? 'yes (config file written)' : 'no (original untouched)'}`);
+    if (profile?.globalFiles?.length) {
+      for (const f of profile.globalFiles) {
+        console.log(`     file:    ${f}`);
+      }
+    }
+    console.log(`     note:    ${strategy.note}`);
+    console.log('');
+  }
 }
 
 function reloadAdapters(): void {
@@ -165,11 +259,19 @@ export function addAdapterCommands(): void {
     });
 
   adapterCmd
+    .command('status')
+    .description('Show how each adapter is routed (env injection vs global config)')
+    .action(() => {
+      showStatus();
+    });
+
+  adapterCmd
     .command('install <id>')
     .description('Install adapter')
-    .action(async (id) => {
+    .option('--global', 'Also write the application\'s own config file (opt-in)')
+    .action(async (id, options) => {
       try {
-        await adapterManager.install(id);
+        await adapterManager.install(id, undefined, undefined, { global: options.global === true });
       } catch (err: any) {
         console.error(`❌ Install failed: ${err.message}`);
       }
@@ -184,6 +286,13 @@ export function addAdapterCommands(): void {
       } catch (err: any) {
         console.error(`❌ Uninstall failed: ${err.message}`);
       }
+    });
+
+  adapterCmd
+    .command('export <id>')
+    .description('Print the configuration snippet for manual setup (writes nothing)')
+    .action((id) => {
+      exportAdapter(id);
     });
 
   adapterCmd

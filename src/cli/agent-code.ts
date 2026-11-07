@@ -4,7 +4,15 @@ import * as path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 import { loadConfig, getConfig } from '../config';
 import { startServer } from '../server';
-import { resolveAgentEnv } from '../agents/resolve';
+import {
+  buildLaunchArgs,
+  buildLaunchEnv,
+  createLaunchContext,
+  getInjectedEnv,
+  getLaunchStrategy,
+  maskEnv
+} from '../agents/launch';
+import { loadProfile } from '../agents/profiles';
 
 function showContext(): void {
   const ctx = loadContext();
@@ -127,7 +135,12 @@ function isCommandAvailable(command: string): boolean {
   }
 }
 
-export async function startAgent(agentType: string, sessionId?: string, startServerFlag = true): Promise<void> {
+export async function startAgent(
+  agentType: string,
+  sessionId?: string,
+  startServerFlag = true,
+  options?: { dryRun?: boolean }
+): Promise<void> {
   const agents = getAgentsConfig();
   const agent = agents.find(a => a.name === agentType);
 
@@ -165,27 +178,54 @@ export async function startAgent(agentType: string, sessionId?: string, startSer
   ctx.activeSession = sessionId;
   saveContext(ctx);
 
-  const resolved = resolveAgentEnv('mc');
-  const env = {
-    ...process.env,
-    ...agent.env,
-    ANTHROPIC_BASE_URL: resolved.ANTHROPIC_BASE_URL,
-    ANTHROPIC_API_KEY: resolved.ANTHROPIC_API_KEY,
-    ANTHROPIC_VERSION: resolved.ANTHROPIC_VERSION,
-    ANTHROPIC_MODEL: 'modelcompass',
-    CLAUDE_MODEL: 'modelcompass',
-    MC_MODEL: 'mc'
+  // ---------------------------------------------------------------------
+  // Launch-time injection.
+  // The routing configuration is applied to the child process environment
+  // only. The parent process.env and the target application's own config
+  // files are never modified, so running the original program directly keeps
+  // its original behaviour.
+  // ---------------------------------------------------------------------
+  const profile = loadProfile(agentType);
+  const launchCtx = createLaunchContext();
+  const strategy = getLaunchStrategy(profile?.type || agent.type);
+
+  const extraEnv: Record<string, string> = {
+    ...(agent.env || {}),
+    ...(profile?.env || {})
   };
 
+  // Claude Code reads ANTHROPIC_* ; keep them in sync with the MC proxy.
+  if ((profile?.type || agent.type) === 'claude-code') {
+    extraEnv.ANTHROPIC_BASE_URL = extraEnv.ANTHROPIC_BASE_URL || launchCtx.baseUrl;
+    extraEnv.ANTHROPIC_API_KEY = extraEnv.ANTHROPIC_API_KEY || launchCtx.apiKey;
+    extraEnv.ANTHROPIC_MODEL = extraEnv.ANTHROPIC_MODEL || launchCtx.model;
+    extraEnv.CLAUDE_MODEL = extraEnv.CLAUDE_MODEL || launchCtx.model;
+  }
+
+  const env = buildLaunchEnv(profile?.type || agent.type, extraEnv, launchCtx);
+  const args = buildLaunchArgs(profile?.type || agent.type, [...(agent.args || []), ...(profile?.args || [])], launchCtx);
+
+  const injected = getInjectedEnv(profile?.type || agent.type, launchCtx);
+
   console.log(`Launching ${agent.name} (session: ${sessionId})`);
-  console.log(`   Command: ${agent.command} ${agent.args?.join(' ') || ''}`);
-  console.log(`   Env: ANTHROPIC_MODEL=modelcompass, ANTHROPIC_BASE_URL=${env.ANTHROPIC_BASE_URL}\n`);
+  console.log(`   Command: ${agent.command} ${args.join(' ')}`.trimEnd());
+  console.log(`   Route:   ${launchCtx.baseUrl}  (model: ${launchCtx.model})`);
+  console.log(`   Mode:    ${strategy.mode} - ${strategy.note}\n`);
+
+  if (options?.dryRun) {
+    console.log('   Injected environment variables:');
+    for (const [key, value] of Object.entries(maskEnv(injected))) {
+      console.log(`     ${key}=${value}`);
+    }
+    console.log('\n   (dry run - nothing was launched)\n');
+    return;
+  }
 
   if (startServerFlag) {
     await startServer();
   }
 
-  currentProcess = spawn(agent.command, agent.args || [], {
+  currentProcess = spawn(agent.command, args, {
     env,
     stdio: 'inherit',
     shell: process.platform === 'win32'
@@ -218,16 +258,14 @@ export async function switchAgent(agentType: string, options?: { session?: strin
 
   console.log(`Switched agent: ${oldAgent} → ${agentType}`);
 
-  if (agentType === 'claude') {
-    const resolved = resolveAgentEnv('mc');
-    // The MC wrapper needs these env vars for the spawned Claude process,
-    // but we avoid mutating the global process.env to keep native Claude config intact.
-    // The values are passed to the child process via its environment (see startAgent).
-    console.log(`\nClaude environment configured:`);
-    console.log(`   MC_MODEL=mc, ANTHROPIC_BASE_URL=${resolved.ANTHROPIC_BASE_URL}`);
-    console.log('\nNow starting server...\n');
-    await startServer();
-  }
+  // Note: no global environment variable is mutated here. The routing is
+  // applied to the spawned child process only, so the original application
+  // keeps working normally when started outside of MC.
+  const strategy = getLaunchStrategy(agentType);
+  console.log(`\nRouting configured for ${agentType}:`);
+  console.log(`   Mode: ${strategy.mode} - ${strategy.note}`);
+  console.log('\nNow starting server...\n');
+  await startServer();
 
   await startAgent(agentType, options?.session, false);
 }
@@ -273,6 +311,7 @@ export function addCommand(): void {
   codeCmd
     .option('-s, --session <id>', 'Specify session ID')
     .option('-l, --list', 'List available agents')
+    .option('--dry-run', 'Show the injected configuration without launching')
     .action(async (agent, options) => {
       if (options.list) {
         const agents = getAgentsConfig();
@@ -292,7 +331,7 @@ export function addCommand(): void {
         console.log(`Using default agent: ${agent}\n`);
       }
 
-      await startAgent(agent, options.session);
+      await startAgent(agent, options.session, true, { dryRun: options.dryRun });
     });
 
   codeCmd

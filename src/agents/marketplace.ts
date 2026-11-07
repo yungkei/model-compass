@@ -75,7 +75,7 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         id: 'claude',
         name: 'Claude Code',
         type: 'claude-code',
-        description: 'Anthropic Claude Code adapter - auto-configures ANTHROPIC_BASE_URL and API Key',
+        description: 'Anthropic Claude Code adapter - routes via env vars, ~/.claude/settings.json is never touched',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['claude', 'anthropic', 'official'],
@@ -84,47 +84,22 @@ const OFFICIAL_MARKETPLACE: MarketplaceConfig = {
         envVars: {
           ANTHROPIC_BASE_URL: 'http://localhost:8765/v1',
           ANTHROPIC_API_KEY: 'sk-dummy'
-        },
-        configFiles: [
-          {
-            path: '~/.claude/settings.json',
-            template: {
-              env: {
-                ANTHROPIC_BASE_URL: '{env:ANTHROPIC_BASE_URL}',
-                ANTHROPIC_API_KEY: '{env:ANTHROPIC_API_KEY}'
-              }
-            }
-          }
-        ]
+        }
       },
       {
         id: 'opencode',
         name: 'OpenCode',
         type: 'opencode',
-        description: 'OpenCode adapter - auto-generates Provider configuration',
+        description: 'OpenCode adapter - routes via OPENCODE_CONFIG_CONTENT, opencode.json is never touched',
         version: '1.0.0',
         author: 'Model Compass Team',
         tags: ['opencode', 'official'],
         license: 'MIT',
         builtin: true,
-        configFiles: [
-          {
-            path: '~/.config/opencode/opencode.json',
-            template: {
-              $schema: 'https://opencode.ai/config.json',
-              provider: {
-                'model-compass': {
-                  npm: '@ai-sdk/openai-compatible',
-                  name: 'Model Compass Router',
-                  options: {
-                    baseURL: 'http://localhost:8765/v1',
-                    apiKey: '{env:ANTHROPIC_API_KEY}'
-                  }
-                }
-              }
-            }
-          }
-        ]
+        envVars: {
+          MC_BASE_URL: 'http://localhost:8765/v1',
+          MC_API_KEY: 'sk-dummy'
+        }
       },
       {
         id: 'cursor',
@@ -370,15 +345,23 @@ export function getTypeLabel(type: string): string {
 }
 
 function pluginToAdapter(plugin: MarketPlugin): AgentAdapter {
-  return {
+  const adapter: AgentAdapter = {
     id: plugin.id,
     name: plugin.name,
     type: plugin.type,
     description: plugin.description,
     version: plugin.version,
-    envVars: plugin.envVars,
     configFiles: plugin.configFiles
   };
+
+  // envVars declared by the plugin become launch-time environment variables.
+  // They are injected into the spawned child process and never written into
+  // the target application's configuration.
+  if (plugin.envVars && Object.keys(plugin.envVars).length > 0) {
+    adapter.launchEnv = () => ({ ...plugin.envVars });
+  }
+
+  return adapter;
 }
 
 export function listPlugins(query?: string): void {
@@ -450,7 +433,7 @@ export function getMarketPluginManager(): PluginManager {
   return new PluginManager(pluginDir);
 }
 
-export async function installFromMarket(id: string): Promise<void> {
+export async function installFromMarket(id: string, options?: { global?: boolean }): Promise<void> {
   const plugins = getAllPlugins();
   const plugin = plugins.find(p => p.id === id);
 
@@ -498,9 +481,13 @@ export async function installFromMarket(id: string): Promise<void> {
   }
 
   const adapter = pluginToAdapter(plugin);
-  await adapterManager.install(id, adapter);
+  await adapterManager.install(id, adapter, undefined, { global: options?.global === true });
 
   console.log(`\n✅ ${plugin.name} installed!`);
+  console.log(`   Launch it with: mc code ${id}`);
+  if (!options?.global) {
+    console.log('   The original application configuration was left untouched.');
+  }
 }
 
 export async function addMarketplace(url: string): Promise<void> {
@@ -605,9 +592,10 @@ export function addMarketplaceCommands(): void {
   marketCmd
     .command('install <id>')
     .description('Install plugin from marketplace')
-    .action(async (id) => {
+    .option('--global', 'Also write the application\'s own config file (opt-in)')
+    .action(async (id, options) => {
       try {
-        await installFromMarket(id);
+        await installFromMarket(id, { global: options?.global === true });
       } catch (err: any) {
         console.error(`❌ Install failed: ${err.message}`);
       }

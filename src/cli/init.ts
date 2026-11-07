@@ -8,6 +8,7 @@ export function addInitCommand(): void {
     .command('init')
     .description('Initialize Model Compass with plugins')
     .option('--quick', 'Install commonly used plugins (claude, opencode, cursor)')
+    .option('--global', 'Also write the applications\' own config files (opt-in)')
     .option('--list', 'List available plugins for setup')
     .action(async (options) => {
       if (options.list) {
@@ -26,19 +27,25 @@ export function addInitCommand(): void {
         console.log('\n🚀 Quick setup - installing commonly used plugins...\n');
         for (const id of QUICK_PLUGINS) {
           try {
-            await installFromMarket(id);
+            await installFromMarket(id, { global: options.global === true });
           } catch (err: any) {
             console.error(`  ✗ ${id}: ${err.message}`);
           }
         }
         console.log('\n✅ Quick setup complete!');
-        console.log('   Run \'mc start\' to start the server');
+        console.log('   Launch an agent with:  mc code claude');
+        console.log('   Your original app configs were left untouched.');
+        if (!options.global) {
+          console.log('   Run "mc init --quick --global" if you prefer global config files.');
+        }
+        console.log('   Start the server with: mc start');
         return;
       }
 
       console.log('\n📦 Model Compass Setup\n');
       console.log('Usage:');
       console.log('  mc init --quick       Install commonly used plugins');
+      console.log('  mc init --quick --global  Also write the apps\' own config files');
       console.log('  mc init --list        Browse all available plugins');
       console.log('  mc plugin install <id>  Install a specific plugin');
       console.log('');

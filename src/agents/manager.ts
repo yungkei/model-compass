@@ -6,6 +6,16 @@ import {
   builtInAdapters,
   createAdapterContext
 } from './types';
+import { AgentProfile, loadProfile, removeProfile, saveProfile } from './profiles';
+import { createLaunchContext, getLaunchStrategy, getInjectedEnv } from './launch';
+
+export interface InstallOptions {
+  /**
+   * Write the target application's own configuration file.
+   * Defaults to false so that MC never pollutes third-party applications.
+   */
+  global?: boolean;
+}
 
 export class AdapterManager {
   private adapters: Map<string, AgentAdapter> = new Map();
@@ -91,7 +101,27 @@ export class AdapterManager {
     return this.getInstalled().includes(id);
   }
 
-  async install(id: string, adapter?: AgentAdapter, context?: AdapterContext): Promise<void> {
+  /** Read the MC-owned profile of an adapter. */
+  getProfile(id: string): AgentProfile | undefined {
+    return loadProfile(id);
+  }
+
+  /**
+   * Install an adapter.
+   *
+   * By default nothing outside of ~/.model-compass is touched: MC records a
+   * profile and applies the routing when the agent is launched through
+   * `mc code <agent>`.
+   *
+   * Pass `options.global = true` to additionally write the target
+   * application's own configuration file (explicit user opt-in).
+   */
+  async install(
+    id: string,
+    adapter?: AgentAdapter,
+    context?: AdapterContext,
+    options?: InstallOptions
+  ): Promise<void> {
     const resolvedAdapter = adapter || this.adapters.get(id);
     if (!resolvedAdapter) {
       throw new Error(`Unknown adapter: ${id}`);
@@ -103,17 +133,36 @@ export class AdapterManager {
     }
 
     const ctx = context || createAdapterContext();
+    const wantsGlobal = options?.global === true;
+
     console.log(`📦 Installing ${resolvedAdapter.name} adapter...\n`);
 
     if (resolvedAdapter.onInstall) {
       await resolvedAdapter.onInstall(ctx);
     }
 
-    if (resolvedAdapter.configFiles) {
+    // 1. Always persist MC's own profile.
+    const profile = this.buildProfile(resolvedAdapter, ctx);
+    saveProfile(profile);
+
+    // 2. Only write the third-party config when explicitly requested.
+    let globalFiles: string[] = [];
+    if (wantsGlobal && resolvedAdapter.configFiles && resolvedAdapter.configFiles.length > 0) {
+      console.log('  ⚠️  Writing global configuration (--global):');
       for (const cf of resolvedAdapter.configFiles) {
-        await this.applyConfigFile(cf.path, cf.template, cf.merge);
+        const written = await this.applyConfigFile(cf.path, cf.template, cf.merge);
+        if (written) globalFiles.push(this.expandPath(cf.path));
+      }
+    } else if (resolvedAdapter.configFiles && resolvedAdapter.configFiles.length > 0) {
+      console.log('  ℹ️  Global config not written (use --global to opt in)');
+      for (const cf of resolvedAdapter.configFiles) {
+        console.log(`     ${this.expandPath(cf.path)}`);
       }
     }
+
+    profile.globalApplied = globalFiles.length > 0;
+    profile.globalFiles = globalFiles;
+    saveProfile(profile);
 
     const installed = this.getInstalled();
     installed.push(id);
@@ -124,9 +173,17 @@ export class AdapterManager {
     }
 
     console.log(`\n✅ ${resolvedAdapter.name} adapter installed!`);
+    console.log(`   Launch it with: mc code ${id}`);
+    console.log('   Your original application configuration was left untouched.');
   }
 
-  async uninstall(id: string, context?: AdapterContext): Promise<void> {
+  /**
+   * Uninstall an adapter.
+   *
+   * The third-party configuration file is only restored when it was written
+   * by MC in global mode.
+   */
+  async uninstall(id: string, context?: AdapterContext, options?: InstallOptions): Promise<void> {
     const adapter = this.adapters.get(id);
     if (!adapter) {
       throw new Error(`Unknown adapter: ${id}`);
@@ -138,20 +195,27 @@ export class AdapterManager {
     }
 
     const ctx = context || createAdapterContext();
+    const profile = loadProfile(id);
 
     if (adapter.onUninstall) {
       await adapter.onUninstall(ctx);
     }
 
-    if (adapter.configFiles) {
-      for (const cf of adapter.configFiles) {
-        await this.removeConfigFile(cf.path, cf.template);
+    // Restore global config only if MC wrote it in global mode.
+    if (profile?.globalApplied && profile.globalFiles && profile.globalFiles.length > 0) {
+      console.log('  ↩️  Restoring global configuration:');
+      for (const filePath of profile.globalFiles) {
+        this.restoreConfigFile(filePath);
       }
+    } else if (adapter.configFiles && adapter.configFiles.length > 0) {
+      console.log('  ℹ️  No global configuration was written - nothing to restore');
     }
 
     if (adapter.onDeactivate) {
       await adapter.onDeactivate(ctx);
     }
+
+    removeProfile(id);
 
     const installed = this.getInstalled().filter(i => i !== id);
     this.setInstalled(installed);
@@ -159,7 +223,42 @@ export class AdapterManager {
     console.log(`✅ ${adapter.name} adapter uninstalled`);
   }
 
-  private async applyConfigFile(filePath: string, template: object, merge?: boolean): Promise<void> {
+  private buildProfile(adapter: AgentAdapter, ctx: AdapterContext): AgentProfile {
+    const launchCtx = createLaunchContext();
+    let env: Record<string, string> = {};
+
+    try {
+      env = adapter.launchEnv ? adapter.launchEnv(ctx) : getInjectedEnv(adapter.type, launchCtx);
+    } catch {
+      env = {};
+    }
+
+    let args: string[] = [];
+    try {
+      args = adapter.launchArgs ? adapter.launchArgs(ctx) : [];
+    } catch {
+      args = [];
+    }
+
+    return {
+      id: adapter.id,
+      name: adapter.name,
+      type: adapter.type,
+      description: adapter.description,
+      version: adapter.version,
+      env,
+      args,
+      globalApplied: false,
+      globalFiles: [],
+      installedAt: Date.now()
+    };
+  }
+
+  /**
+   * Write a config file into the target application's directory.
+   * The previous content is backed up once so it can be restored later.
+   */
+  private async applyConfigFile(filePath: string, template: object, merge?: boolean): Promise<boolean> {
     const fullPath = this.expandPath(filePath);
     const dir = path.dirname(fullPath);
 
@@ -168,36 +267,61 @@ export class AdapterManager {
     }
 
     let content = JSON.stringify(template, null, 2);
+    const shouldMerge = merge !== false;
 
-    if (fs.existsSync(fullPath) && merge) {
-      try {
-        const existing = JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as Record<string, unknown>;
-        const merged = this.deepMerge(existing, template as Record<string, unknown>);
-        content = JSON.stringify(merged, null, 2);
-        console.log(`  ✓ Merged config: ${fullPath}`);
-      } catch {
-        console.log(`  ✗ Skipped config (JSON parse failed): ${fullPath}`);
-        return;
+    if (fs.existsSync(fullPath)) {
+      this.backupConfigFile(fullPath);
+      if (shouldMerge) {
+        try {
+          const existing = JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as Record<string, unknown>;
+          const merged = this.deepMerge(existing, template as Record<string, unknown>);
+          content = JSON.stringify(merged, null, 2);
+          console.log(`  ✓ Merged config: ${fullPath}`);
+        } catch {
+          console.log(`  ✗ Skipped config (JSON parse failed): ${fullPath}`);
+          return false;
+        }
+      } else {
+        console.log(`  ✓ Overwrote config: ${fullPath}`);
       }
     } else {
       console.log(`  ✓ Created config: ${fullPath}`);
     }
 
     fs.writeFileSync(fullPath, content);
+    return true;
   }
 
-  private async removeConfigFile(filePath: string, template: object): Promise<void> {
-    const fullPath = this.expandPath(filePath);
+  /** Keep the original file around so it can be restored on uninstall. */
+  private backupConfigFile(fullPath: string): void {
+    const backupPath = `${fullPath}.mc-backup`;
+    if (fs.existsSync(backupPath)) return;
+    try {
+      fs.copyFileSync(fullPath, backupPath);
+      console.log(`  💾 Backed up original: ${backupPath}`);
+    } catch {
+      // ignore backup failures
+    }
+  }
 
-    if (fs.existsSync(fullPath)) {
-      try {
+  /** Restore the original file from the backup created by MC. */
+  private restoreConfigFile(fullPath: string): void {
+    const backupPath = `${fullPath}.mc-backup`;
+    try {
+      if (fs.existsSync(backupPath)) {
+        fs.copyFileSync(backupPath, fullPath);
+        fs.unlinkSync(backupPath);
+        console.log(`  ✓ Restored: ${fullPath}`);
+      } else if (fs.existsSync(fullPath)) {
+        // No backup available - only strip the keys MC added.
+        const template = { 'model-compass': {} };
         const existing = JSON.parse(fs.readFileSync(fullPath, 'utf-8')) as Record<string, unknown>;
-        const cleaned = this.removeTemplateKeys(existing, template as Record<string, unknown>);
+        const cleaned = this.removeTemplateKeys(existing, template);
         fs.writeFileSync(fullPath, JSON.stringify(cleaned, null, 2));
-        console.log(`  ✓ Removed config: ${fullPath}`);
-      } catch {
-        console.log(`  ✗ Skipped config: ${fullPath}`);
+        console.log(`  ✓ Cleaned: ${fullPath}`);
       }
+    } catch {
+      console.log(`  ✗ Could not restore: ${fullPath}`);
     }
   }
 
